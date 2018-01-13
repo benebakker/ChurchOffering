@@ -1,3 +1,4 @@
+// my class for donors.
 
 public class Donor {
 	
