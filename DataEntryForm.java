@@ -1,5 +1,4 @@
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -24,37 +23,15 @@ public class DataEntryForm extends JFrame {
 	private JTextField categoryField;
 	private JTextField descriptionField;
 	private JTextField amountField;
-	
-	private DataEntryFormController myDataEntryFormController;
-	
+	private JTextField zipField;
 
 	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					System.out.println("starting the main() in the Data Entry Form Controller...");
-					DataEntryForm myDataEntryForm = new DataEntryForm();
-					myDataEntryForm.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-	
-	/**
-	 * Create the frame.
+	 * Create the frame.  The data entry form constructor.
 	 */
 	public DataEntryForm() {
 		
-		System.out.println("launching / constructing the DataEntryForm...");
-		myDataEntryFormController = new DataEntryFormController(this);
-		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 450, 350);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -77,7 +54,7 @@ public class DataEntryForm extends JFrame {
 		
 		JLabel amountLabel = new JLabel("Amount");
 		amountLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		amountLabel.setBounds(72, 230, 61, 16);
+		amountLabel.setBounds(72, 258, 61, 16);
 		contentPane.add(amountLabel);
 		
 		JLabel addressLabel = new JLabel("Address");
@@ -95,14 +72,19 @@ public class DataEntryForm extends JFrame {
 		stateLabel.setBounds(72, 146, 61, 16);
 		contentPane.add(stateLabel);
 		
+		JLabel zipLabel = new JLabel("Zip");
+		zipLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		zipLabel.setBounds(72, 174, 61, 16);
+		contentPane.add(zipLabel);
+		
 		JLabel categoryLabel = new JLabel("Category");
 		categoryLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		categoryLabel.setBounds(72, 174, 61, 16);
+		categoryLabel.setBounds(72, 202, 61, 16);
 		contentPane.add(categoryLabel);
 		
 		JLabel descriptionLabel = new JLabel("Description");
 		descriptionLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		descriptionLabel.setBounds(44, 202, 89, 16);
+		descriptionLabel.setBounds(44, 230, 89, 16);
 		contentPane.add(descriptionLabel);
 		
 		lastNameField = new JTextField();
@@ -135,34 +117,60 @@ public class DataEntryForm extends JFrame {
 		contentPane.add(stateField);
 		stateField.setColumns(10);
 		
+		zipField = new JTextField();
+		zipField.setBounds(155, 169, 130, 26);
+		contentPane.add(zipField);
+		zipField.setColumns(10);
+		
 		categoryField = new JTextField();
-		categoryField.setBounds(155, 169, 130, 26);
+		categoryField.setBounds(155, 197, 130, 26);
 		contentPane.add(categoryField);
 		categoryField.setColumns(10);
 		
 		descriptionField = new JTextField();
-		descriptionField.setBounds(155, 197, 130, 26);
+		descriptionField.setBounds(155, 225, 130, 26);
 		contentPane.add(descriptionField);
 		descriptionField.setColumns(10);
 		
 		amountField = new JTextField();
-		amountField.setBounds(155, 225, 130, 26);
+		amountField.setBounds(155, 251, 130, 26);
 		contentPane.add(amountField);
 		amountField.setColumns(10);
 		
-		JButton enterDataButton = new JButton("Enter Data");
+		FormController enterButtonDataController = new FormController(lastNameField);
+		JButton enterDataButton = new JButton();
+		enterDataButton.setText("Enter Data");
 		enterDataButton.setBounds(297, 141, 134, 29);
+		enterDataButton.addActionListener(enterButtonDataController);
 		contentPane.add(enterDataButton);
-		enterDataButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				System.out.println("action occurred on the enterDataButton...");
-				System.out.println("trying to send message to the DataEntryFormController...");
-			}
-		});
 		
-		JButton showDataButton = new JButton("Show All Entries");
+		JButton showDataButton = new JButton();
+		showDataButton.setText("Show All Entries");
 		showDataButton.setBounds(297, 169, 134, 29);
 		contentPane.add(showDataButton);
+		
+		setVisible(true);
 	}
 	
+	class buttonActionListener implements ActionListener{
+		public void actionPerformed(ActionEvent e) {
+			System.out.println("action occurred on the enterDataButton...");
+			Donor d = new Donor(
+					lastNameField.getText(),
+					firstNameField.getText(),
+					envelopeField.getText(),
+					addressField.getText(),
+					cityField.getText(),
+					stateField.getText(),
+					zipField.getText());
+					
+			Donation currentDonation = new Donation (
+					d,
+					categoryField.getText(),
+					descriptionField.getText(),
+					Integer.parseInt(amountField.getText()));
+			
+			
+		}	
+	}
 }

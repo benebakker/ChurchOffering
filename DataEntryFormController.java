@@ -18,18 +18,7 @@ public class DataEntryFormController {
 		
 		/*
 		Donor currentDonor = new Donor();
-		currentDonor.setLastName(myDataEntryForm.getLastNameField().getText());
-		currentDonor.setFirstName(myDataEntryForm.getFirstNameField().getText());
-		currentDonor.setEnvelopeNumber(myDataEntryForm.getEnvelopeField().getText());
-		currentDonor.setAddress(myDataEntryForm.getAddressField().getText());
-		currentDonor.setCity(myDataEntryForm.getCityField().getText());
-		currentDonor.setState(myDataEntryForm.getStateField().getText());
-		currentDonor.setZip(myDataEntryForm.getZipField().getText());
 		
-		Donation currentDonation = new Donation (currentDonor,
-				myDataEntryForm.getCategoryField().getText(),
-				myDataEntryForm.getDescriptionField().getText(),
-				Integer.parseInt(myDataEntryForm.getAmountField().getText()));
 		
 		thisWeeksOffering.getOffering().add(currentDonation);
 		*/
