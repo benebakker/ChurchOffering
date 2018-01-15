@@ -2,6 +2,7 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -10,18 +11,23 @@ import javax.swing.table.DefaultTableModel;
 
 public class FormController implements ActionListener {
 	
-	private JPanel form;
+	private DataEntryForm form;
 	
 	private DefaultTableModel model;
 
-	public FormController(JPanel f) {
+	public FormController(DataEntryForm f) {
 		super();
 		form = f;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		System.out.println("some button pressed");
+		System.out.println("some button pressed" + e);
+		if(e.getActionCommand().compareTo("enter-data")==0) {
+			System.out.println("the enter data button was pressed");
+			form.getLastNameField().setText("hello");
+		}
+		
 	
 	}
 	/*

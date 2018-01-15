@@ -137,19 +137,27 @@ public class DataEntryForm extends JFrame {
 		contentPane.add(amountField);
 		amountField.setColumns(10);
 		
-		FormController enterButtonDataController = new FormController(contentPane);
+		FormController enterButtonDataController = new FormController(this);
 		JButton enterDataButton = new JButton();
 		enterDataButton.setText("Enter Data");
 		enterDataButton.setBounds(297, 141, 134, 29);
+		enterDataButton.setActionCommand("enter-data");
 		enterDataButton.addActionListener(enterButtonDataController);
 		contentPane.add(enterDataButton);
 		
+		FormController showButtonDataController = new FormController(this);
 		JButton showDataButton = new JButton();
 		showDataButton.setText("Show All Entries");
 		showDataButton.setBounds(297, 169, 134, 29);
+		showDataButton.setActionCommand("show-data");
+		showDataButton.addActionListener(showButtonDataController);
 		contentPane.add(showDataButton);
 		
 		setVisible(true);
+	}
+	
+	public JTextField getLastNameField(){ 
+		return lastNameField;
 	}
 
 }
