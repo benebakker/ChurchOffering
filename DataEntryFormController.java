@@ -24,4 +24,27 @@ public class DataEntryFormController {
 		*/
 	}
 
+	/*
+			System.out.println("action occurred on the enterDataButton...");
+			Donor d = new Donor(
+					lastNameField.getText(),
+					firstNameField.getText(),
+					envelopeField.getText(),
+					addressField.getText(),
+					cityField.getText(),
+					stateField.getText(),
+					zipField.getText());
+					
+			Donation currentDonation = new Donation (
+					d,
+					categoryField.getText(),
+					descriptionField.getText(),
+					Integer.parseInt(amountField.getText()));
+			
+			
+		}	
+	}
+	
+	*/
+
 }

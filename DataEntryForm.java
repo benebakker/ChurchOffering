@@ -137,7 +137,7 @@ public class DataEntryForm extends JFrame {
 		contentPane.add(amountField);
 		amountField.setColumns(10);
 		
-		FormController enterButtonDataController = new FormController(lastNameField);
+		FormController enterButtonDataController = new FormController(contentPane);
 		JButton enterDataButton = new JButton();
 		enterDataButton.setText("Enter Data");
 		enterDataButton.setBounds(297, 141, 134, 29);
@@ -151,26 +151,5 @@ public class DataEntryForm extends JFrame {
 		
 		setVisible(true);
 	}
-	
-	class buttonActionListener implements ActionListener{
-		public void actionPerformed(ActionEvent e) {
-			System.out.println("action occurred on the enterDataButton...");
-			Donor d = new Donor(
-					lastNameField.getText(),
-					firstNameField.getText(),
-					envelopeField.getText(),
-					addressField.getText(),
-					cityField.getText(),
-					stateField.getText(),
-					zipField.getText());
-					
-			Donation currentDonation = new Donation (
-					d,
-					categoryField.getText(),
-					descriptionField.getText(),
-					Integer.parseInt(amountField.getText()));
-			
-			
-		}	
-	}
+
 }
