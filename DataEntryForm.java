@@ -1,6 +1,11 @@
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -10,25 +15,32 @@ import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 
 public class DataEntryForm extends JFrame {
 
 	private JPanel contentPane;
-	private JTextField lastNameField;
+	private JComboBox lastNameField;
 	private JTextField firstNameField;
 	private JTextField envelopeField;
 	private JTextField addressField;
 	private JTextField cityField;
-	private JTextField stateField;
+	private JComboBox stateField;
 	private JTextField categoryField;
 	private JTextField descriptionField;
 	private JTextField amountField;
 	private JTextField zipField;
+	
+	private FormController checkLastNameBoxController; 
+	
+	private ArrayList<Donor> churchDB;
 
 	/**
 	 * Create the frame.  The data entry form constructor.
 	 */
 	public DataEntryForm() {
+		
+		loadChurchDB();
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 350);
@@ -37,6 +49,7 @@ public class DataEntryForm extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
+// Labels setup -------------------------------------------------------		
 		JLabel lastNameLabel = new JLabel("Last Name");
 		lastNameLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 		lastNameLabel.setBounds(44, 6, 89, 16);
@@ -87,10 +100,17 @@ public class DataEntryForm extends JFrame {
 		descriptionLabel.setBounds(44, 230, 89, 16);
 		contentPane.add(descriptionLabel);
 		
-		lastNameField = new JTextField();
+// text / combobox setup ------------------------------------------------------		
+		checkLastNameBoxController = new FormController(this);
+		lastNameField = new JComboBox<String>();
+		lastNameField.setEditable(true);
+		lastNameField.setActionCommand("lastname-event");
 		lastNameField.setBounds(155, 1, 130, 26);
+		for(Donor d:churchDB) {
+			lastNameField.addItem(d.getLastName());
+		}
+		lastNameField.addActionListener(checkLastNameBoxController);
 		contentPane.add(lastNameField);
-		lastNameField.setColumns(10);
 		
 		firstNameField = new JTextField();
 		firstNameField.setBounds(155, 29, 130, 26);
@@ -112,10 +132,16 @@ public class DataEntryForm extends JFrame {
 		contentPane.add(cityField);
 		cityField.setColumns(10);
 		
-		stateField = new JTextField();
+		String[] states = new String[] {"  ","MA","AK","AL","AR","AZ","CA","CO","CT","DC","DE","FL","GA","GU","HI","IA","ID", "IL","IN",
+				"KS","KY","LA","MA","MD","ME","MH","MI","MN","MO","MS","MT","NC","ND","NE","NH","NJ","NM","NV","NY", "OH","OK",
+				"OR","PA","PR","PW","RI","SC","SD","TN","TX","UT","VA","VI","VT","WA","WI","WV","WY"};
+		stateField = new JComboBox<String>();
+		stateField.setEditable(true);
 		stateField.setBounds(155, 141, 130, 26);
+		for(String s:states) {
+			stateField.addItem(s);
+		}
 		contentPane.add(stateField);
-		stateField.setColumns(10);
 		
 		zipField = new JTextField();
 		zipField.setBounds(155, 169, 130, 26);
@@ -137,6 +163,7 @@ public class DataEntryForm extends JFrame {
 		contentPane.add(amountField);
 		amountField.setColumns(10);
 		
+// buttons setup --------------------------------------------------------------------		
 		FormController enterButtonDataController = new FormController(this);
 		JButton enterDataButton = new JButton();
 		enterDataButton.setText("Enter Data");
@@ -156,8 +183,175 @@ public class DataEntryForm extends JFrame {
 		setVisible(true);
 	}
 	
-	public JTextField getLastNameField(){ 
+	public FormController getCheckLastNameBoxController() {
+		return checkLastNameBoxController;
+	}
+
+	public void setCheckLastNameBoxController(FormController checkLastNameBoxController) {
+		this.checkLastNameBoxController = checkLastNameBoxController;
+	}
+
+	public ArrayList<Donor> getChurchDB(){
+		return churchDB;
+	}
+
+	public JComboBox getLastNameField() {
 		return lastNameField;
 	}
 
+	public void setLastNameField(JComboBox lastNameField) {
+		this.lastNameField = lastNameField;
+	}
+
+	public JTextField getFirstNameField() {
+		return firstNameField;
+	}
+
+	public void setFirstNameField(String firstName) {
+		this.firstNameField.setText(firstName);
+	}
+
+	public JTextField getEnvelopeField() {
+		return envelopeField;
+	}
+
+	public void setEnvelopeField(String e) {
+		this.envelopeField.setText(e);
+	}
+
+	public JTextField getAddressField() {
+		return addressField;
+	}
+
+	public void setAddressField(String a) {
+		this.addressField.setText(a);
+	}
+
+	public JTextField getCityField() {
+		return cityField;
+	}
+
+	public void setCityField(String c) {
+		this.cityField.setText(c);
+	}
+
+	public JComboBox getStateField() {
+		return stateField;
+	}
+
+	public void setStateField(String s) {
+		this.stateField.setSelectedItem(s);
+	}
+
+	public JTextField getCategoryField() {
+		return categoryField;
+	}
+
+	public void setCategoryField(JTextField categoryField) {
+		this.categoryField = categoryField;
+	}
+
+	public JTextField getDescriptionField() {
+		return descriptionField;
+	}
+
+	public void setDescriptionField(JTextField descriptionField) {
+		this.descriptionField = descriptionField;
+	}
+
+	public JTextField getAmountField() {
+		return amountField;
+	}
+
+	public void setAmountField(JTextField amountField) {
+		this.amountField = amountField;
+	}
+
+	public JTextField getZipField() {
+		return zipField;
+	}
+
+	public void setZipField(String z) {
+		this.zipField.setText(z);
+	}
+	
+	public void loadChurchDB() {
+		
+		System.out.println("reading in the church database");
+		
+		churchDB = new ArrayList<Donor>();
+		
+		Donor d;
+		String fn;
+		String ln;
+		String env;
+		String ad;
+		String ct;
+		String st;
+		String zp;
+		
+		// The name of the file to open.
+	    String churchDBfile = "churchDB1.csv";
+
+	    // This will reference one line at a time
+	    String line = null;
+
+	    try {
+	    		// FileReader reads text files in the default encoding.
+	    		FileReader fileReader = new FileReader(churchDBfile);
+
+	        // Always wrap FileReader in BufferedReader.
+	        BufferedReader bufferedReader = new BufferedReader(fileReader);
+
+	        while((line = bufferedReader.readLine()) != null) {
+	        		//System.out.println(line);
+	        		d = new Donor();
+	        		//System.out.println(line);
+	        		int commaPlace = line.indexOf(',');
+	        		
+	        		try {
+	        			env = line.substring(0, commaPlace);
+	        		}
+	        		catch (Exception e){
+	        			env="0";
+	        			System.out.println(env);
+	        		}
+	        		
+	        		int nextCommaPlace = line.indexOf(',', commaPlace+1);
+	        		ln = line.substring(commaPlace+1, nextCommaPlace);
+	        		commaPlace=nextCommaPlace;
+	        		nextCommaPlace = line.indexOf(',', commaPlace+1);
+	        		fn = line.substring(commaPlace+1, nextCommaPlace);
+	        		commaPlace=nextCommaPlace;
+	        		nextCommaPlace = line.indexOf(',', commaPlace+1);
+	        		ad = line.substring(commaPlace+1, nextCommaPlace);
+	        		commaPlace=nextCommaPlace;
+	        		nextCommaPlace = line.indexOf(',', commaPlace+1);
+	        		ct = line.substring(commaPlace+1, nextCommaPlace);
+	        		commaPlace=nextCommaPlace;
+	        		nextCommaPlace = line.indexOf(',', commaPlace+1);
+	        		st = line.substring(commaPlace+1, nextCommaPlace);
+	        		zp = line.substring(nextCommaPlace+1);
+	        		
+	        		d.setEnvelopeNumber(env);
+	        		d.setFirstName(fn);
+	        		d.setLastName(ln);
+	        		d.setAddress(ad);
+	        		d.setCity(ct);
+	        		d.setState(st);;
+	        		d.setZip(zp);
+	        		
+	        		churchDB.add(d);       		
+	        }   
+
+	        // Always close files.
+	        bufferedReader.close();         
+	    }
+	    catch(FileNotFoundException ex) {
+	    		System.out.println("Unable to open file '" + churchDBfile + "'");                
+	    }
+	    catch(IOException ex) {
+	        System.out.println("Error reading file '" + churchDBfile + "'");
+	    }	   
+	}
 }
