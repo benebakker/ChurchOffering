@@ -7,17 +7,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.table.DefaultTableModel;
-
 public class FormController implements ActionListener {
 	
 	private DataEntryForm form;
 	private ArrayList<Donor> churchDB;
-	private ArrayList <Donation> offering = new ArrayList<Donation>();
+	private ArrayList<Donation> offering = new ArrayList<Donation>();
 
 	public FormController(DataEntryForm f) {
 		super();
@@ -37,6 +31,28 @@ public class FormController implements ActionListener {
 				fillInDataUsingLastName(s);
 			else	
 				updateLastNameComboBox(s);
+		}
+		if(e.getActionCommand().compareTo("envelope-event")==0) {
+			String en = (String)form.getEnvelopeField().getText();
+			System.out.println(en);
+			boolean envelopeExists=false;
+			
+			System.out.println(form.getChurchDB().size());
+			
+			for(Donor d1: form.getChurchDB()) {
+				
+				System.out.println(d1.getEnvelopeNumber());
+				if(d1.getEnvelopeNumber()!=null) 
+					if (d1.getEnvelopeNumber().compareTo(en)==0)
+						envelopeExists=true;
+			}
+			if(envelopeExists) {
+				fillInDataUsingEnvelopeNumber(en);
+			}
+			else {
+				//default title and icon
+				form.alertMessage("Envelope number does not exist.");
+			}	
 		}
 	}
 	
@@ -75,7 +91,8 @@ public class FormController implements ActionListener {
 		
 		Donation s = new Donation(
 				d,
-				nullToEmptyString(form.getCategoryField().getText()),
+				nullToEmptyString((String)form.getCategoryField().getSelectedItem()),
+				nullToEmptyString((String)form.getDesignationField().getSelectedItem()),
 				nullToEmptyString(form.getDescriptionField().getText()),
 				valueOf(form.getAmountField().getText())
 				);
@@ -88,6 +105,21 @@ public class FormController implements ActionListener {
 			if (d.getLastName().compareToIgnoreCase(s)==0) {
 				form.setFirstNameField(d.getFirstName());
 				form.setEnvelopeField(d.getEnvelopeNumber());
+				form.setAddressField(d.getAddress());
+				form.setCityField(d.getCity());
+				form.setStateField(d.getState());
+				form.setZipField(d.getZip());
+				return;
+			}
+		}
+			
+	}
+
+	private void fillInDataUsingEnvelopeNumber(String s) {
+		for(Donor d: form.getChurchDB()) {
+			if (d.getEnvelopeNumber().compareToIgnoreCase(s)==0) {
+				form.setFirstNameField(d.getFirstName());
+				form.getLastNameField().setSelectedItem(d.getLastName());
 				form.setAddressField(d.getAddress());
 				form.setCityField(d.getCity());
 				form.setStateField(d.getState());

@@ -1,6 +1,3 @@
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -12,6 +9,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.JButton;
@@ -20,21 +18,23 @@ import javax.swing.JComboBox;
 public class DataEntryForm extends JFrame {
 
 	private JPanel contentPane;
-	private JComboBox lastNameField;
+	private JComboBox<String> lastNameField;
 	private JTextField firstNameField;
 	private JTextField envelopeField;
 	private JTextField addressField;
 	private JTextField cityField;
-	private JComboBox stateField;
-	private JTextField categoryField;
+	private JComboBox<String> stateField;
+	private JComboBox<String> categoryField;
 	private JTextField descriptionField;
 	private JTextField amountField;
 	private JTextField zipField;
+	private JComboBox<String> designationField;
 	
 	private FormController checkLastNameBoxController; 
+	private FormController envelopeFieldController;
 	
 	private ArrayList<Donor> churchDB;
-
+	
 	/**
 	 * Create the frame.  The data entry form constructor.
 	 */
@@ -67,7 +67,7 @@ public class DataEntryForm extends JFrame {
 		
 		JLabel amountLabel = new JLabel("Amount");
 		amountLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		amountLabel.setBounds(72, 258, 61, 16);
+		amountLabel.setBounds(72, 290, 61, 16);
 		contentPane.add(amountLabel);
 		
 		JLabel addressLabel = new JLabel("Address");
@@ -95,9 +95,14 @@ public class DataEntryForm extends JFrame {
 		categoryLabel.setBounds(72, 202, 61, 16);
 		contentPane.add(categoryLabel);
 		
+		JLabel designationLabel = new JLabel("Designation");
+		designationLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+		designationLabel.setBounds(44, 230, 89, 16);
+		contentPane.add(designationLabel);
+		
 		JLabel descriptionLabel = new JLabel("Description");
 		descriptionLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		descriptionLabel.setBounds(44, 230, 89, 16);
+		descriptionLabel.setBounds(44, 258, 89, 16);
 		contentPane.add(descriptionLabel);
 		
 // text / combobox setup ------------------------------------------------------		
@@ -117,8 +122,11 @@ public class DataEntryForm extends JFrame {
 		contentPane.add(firstNameField);
 		firstNameField.setColumns(10);
 		
+		envelopeFieldController = new FormController(this);
 		envelopeField = new JTextField();
 		envelopeField.setBounds(155, 57, 130, 26);
+		envelopeField.setActionCommand("envelope-event");
+		envelopeField.addActionListener(envelopeFieldController);
 		contentPane.add(envelopeField);
 		envelopeField.setColumns(10);
 		
@@ -148,18 +156,30 @@ public class DataEntryForm extends JFrame {
 		contentPane.add(zipField);
 		zipField.setColumns(10);
 		
-		categoryField = new JTextField();
+		String[] categories = new String[] {"","Cash","Check","EFT"};
+		categoryField = new JComboBox<String>();
 		categoryField.setBounds(155, 197, 130, 26);
+		for(String s: categories) {
+			categoryField.addItem(s);
+		}
 		contentPane.add(categoryField);
-		categoryField.setColumns(10);
+		
+		String[] designations = new String[] {"","Plate","Envelope","Misc.","Designated"};
+		designationField = new JComboBox<String>();
+		designationField.setBounds(155, 225, 130, 26);
+		for(String s: designations) {
+			designationField.addItem(s);
+		}
+		contentPane.add(designationField);
+
 		
 		descriptionField = new JTextField();
-		descriptionField.setBounds(155, 225, 130, 26);
+		descriptionField.setBounds(155, 253, 130, 26);
 		contentPane.add(descriptionField);
 		descriptionField.setColumns(10);
 		
 		amountField = new JTextField();
-		amountField.setBounds(155, 251, 130, 26);
+		amountField.setBounds(155, 285, 130, 26);
 		contentPane.add(amountField);
 		amountField.setColumns(10);
 		
@@ -179,7 +199,7 @@ public class DataEntryForm extends JFrame {
 		showDataButton.setActionCommand("show-data");
 		showDataButton.addActionListener(showButtonDataController);
 		contentPane.add(showDataButton);
-		
+	
 		setVisible(true);
 	}
 	
@@ -243,14 +263,22 @@ public class DataEntryForm extends JFrame {
 		this.stateField.setSelectedItem(s);
 	}
 
-	public JTextField getCategoryField() {
+	public JComboBox getCategoryField() {
 		return categoryField;
 	}
 
-	public void setCategoryField(JTextField categoryField) {
-		this.categoryField = categoryField;
+	public void setCategoryField(String s) {
+		this.categoryField.setSelectedItem(s);
 	}
 
+	public JComboBox getDesignationField() {
+		return designationField;
+	}
+
+	public void setDesignationField(String s) {
+		this.designationField.setSelectedItem(s);
+	}
+	
 	public JTextField getDescriptionField() {
 		return descriptionField;
 	}
@@ -273,6 +301,12 @@ public class DataEntryForm extends JFrame {
 
 	public void setZipField(String z) {
 		this.zipField.setText(z);
+	}
+	
+	
+	public void alertMessage(String s) {
+		//default title and icon
+		JOptionPane.showMessageDialog(contentPane, s);
 	}
 	
 	public void loadChurchDB() {
