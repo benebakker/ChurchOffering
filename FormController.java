@@ -1,17 +1,17 @@
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
+
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
 public class FormController implements ActionListener {
 	
 	private DataEntryForm form;
-	private ArrayList<Donor> churchDB;
-	private ArrayList<Donation> offering = new ArrayList<Donation>();
+	private static ArrayList<Donation> offering = new ArrayList<Donation>();
 
 	public FormController(DataEntryForm f) {
 		super();
@@ -24,6 +24,11 @@ public class FormController implements ActionListener {
 		if(e.getActionCommand().compareTo("enter-data")==0) {
 			Donation d = getFormData();
 			addDonationToOffering(d);
+			resetForm();
+		}
+		if(e.getActionCommand().compareTo("show-data")==0) {
+			System.out.println("in the show-data event block...");
+			showAllEntries();
 		}
 		if(e.getActionCommand().compareTo("lastname-event")==0) {
 			String s = (String)form.getLastNameField().getSelectedItem();
@@ -61,6 +66,20 @@ public class FormController implements ActionListener {
 		offering.add(d);
 		System.out.println("the number of donations is " + offering.size());
 		
+	}
+	
+	private void resetForm() {
+		form.getLastNameField().setSelectedIndex(1);
+		form.getFirstNameField().setText("");
+		form.getEnvelopeField().setText("");
+		form.getAddressField().setText("");
+		form.getCityField().setText("");
+		form.getZipField().setText("");
+		form.getStateField().setSelectedIndex(0);
+		form.getCategoryField().setSelectedIndex(0);
+		form.getDesignationField().setSelectedIndex(0);
+		form.getDescriptionField().setText("");
+		form.getAmountField().setText("");
 	}
 	
 	public String nullToEmptyString(String s) {
@@ -151,67 +170,53 @@ public class FormController implements ActionListener {
 			}
 		}	
 	}
+
+	private void showAllEntries(){
+		
+		System.out.println("in the show all entries block...number of entries in offering is " + offering.size());
+		
+		JFrame frame = new JFrame();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		Object columnNames[] = { "Last Name", "First Name", "Envelope Number", "Amount",
+				"Designation","Category","Description","Address","City","State","Zip"};
+
+		Object rowData[][] = new Object [offering.size()][columnNames.length];
+
+		int i=0;
+		for(Donation d: offering) {
+			System.out.println("adding item "+i);
+			rowData[i][0] = d.getDonor().getLastName();
+			rowData[i][1] = d.getDonor().getFirstName();
+			rowData[i][2] = d.getDonor().getEnvelopeNumber();
+			rowData[i][3] = d.getAmount();
+			rowData[i][4] = d.getDesignation();
+			rowData[i][5] = d.getCategory();
+			rowData[i][6] = d.getDescription();
+			rowData[i][7] = d.getDonor().getAddress();
+			rowData[i][8] = d.getDonor().getCity();
+			rowData[i][9] = d.getDonor().getState();
+			rowData[i][10] = d.getDonor().getZip();
+
+			i++;
+		}
+
+		JTable table = new JTable(rowData, columnNames);
+
+		//table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 	
-	private void getChurchData() {
-
-		churchDB = new ArrayList<Donor>();
+		System.out.println("preferred width is " + table.getColumnModel().getColumn(1).getPreferredWidth());
+		System.out.println("max width is " + table.getColumnModel().getColumn(1).getMaxWidth());
+		System.out.println("min width is " + table.getColumnModel().getColumn(1).getMinWidth());
 		
-		Donor p;
-		String fn;
-		String ln;
-		String env;
-		String address;
-		String town;
-		String state;
-		String zip;
+		//table.getColumnModel().getColumn(1).setMinWidth(10);
+		//table.getColumnModel().getColumn(1).setMaxWidth(10);
+		//table.getColumnModel().getColumn(1).setPreferredWidth(10);
 		
-		// The name of the file to open.
-	    String churchDBfile = "churchDB1.csv";
-
-	    // This will reference one line at a time
-	    String line = null;
-
-	    try {
-	    		// FileReader reads text files in the default encoding.
-	    		FileReader fileReader = new FileReader(churchDBfile);
-
-	        // Always wrap FileReader in BufferedReader.
-	        BufferedReader bufferedReader = new BufferedReader(fileReader);
-
-	        while((line = bufferedReader.readLine()) != null) {
-	        		p = new Donor();
-	        		//System.out.println(line);
-	        		int commaPlace = line.indexOf(',');
-	        		
-	        		try {
-	        			env = line.substring(0, commaPlace);
-	        		}
-	        		catch (Exception e){
-	        			env="0";
-	        			System.out.println(env);
-	        		}
-	        		
-	        		int nextCommaPlace = line.indexOf(',', commaPlace+1);
-	        		ln = line.substring(commaPlace+1, nextCommaPlace);
-	        		fn = line.substring(nextCommaPlace+1);
-	        		
-	        		p.setEnvelopeNumber(env);
-	        		p.setFirstName(fn);
-	        		p.setLastName(ln);
-	        		
-	        		churchDB.add(p);       		
-	        }   
-
-	        // Always close files.
-	        bufferedReader.close();         
-	    }
-	    catch(FileNotFoundException ex) {
-	    		System.out.println("Unable to open file '" + churchDBfile + "'");                
-	    }
-	    catch(IOException ex) {
-	        System.out.println("Error reading file '" + churchDBfile + "'");
-	    }
-	   
+		JScrollPane scrollPane = new JScrollPane(table);
+		frame.add(scrollPane, BorderLayout.CENTER);
+		frame.setSize(1200, 400);
+		
+		frame.setVisible(true);
 	}
-
 }

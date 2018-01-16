@@ -336,7 +336,7 @@ public class DataEntryForm extends JFrame {
 
 	        // Always wrap FileReader in BufferedReader.
 	        BufferedReader bufferedReader = new BufferedReader(fileReader);
-
+	        
 	        while((line = bufferedReader.readLine()) != null) {
 	        		//System.out.println(line);
 	        		d = new Donor();
@@ -367,13 +367,24 @@ public class DataEntryForm extends JFrame {
 	        		st = line.substring(commaPlace+1, nextCommaPlace);
 	        		zp = line.substring(nextCommaPlace+1);
 	        		
-	        		d.setEnvelopeNumber(env);
-	        		d.setFirstName(fn);
-	        		d.setLastName(ln);
-	        		d.setAddress(ad);
-	        		d.setCity(ct);
-	        		d.setState(st);;
-	        		d.setZip(zp);
+	        		if(ln.compareTo("Last Name")==0) {
+	        			d.setEnvelopeNumber("");
+		        		d.setFirstName("");
+		        		d.setLastName("");
+		        		d.setAddress("");
+		        		d.setCity("");
+		        		d.setState("");
+		        		d.setZip("");
+	        		}
+		        	else {	
+		        		d.setEnvelopeNumber(env);
+		        		d.setFirstName(fn);
+		        		d.setLastName(ln);
+		        		d.setAddress(ad);
+		        		d.setCity(ct);
+		        		d.setState(st);
+		        		d.setZip(zp);
+		        	}
 	        		
 	        		churchDB.add(d);       		
 	        }   
