@@ -2,11 +2,21 @@
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.util.WorkbookUtil;
+
 
 public class FormController implements ActionListener {
 	
@@ -29,6 +39,9 @@ public class FormController implements ActionListener {
 		if(e.getActionCommand().compareTo("show-data")==0) {
 			System.out.println("in the show-data event block...");
 			showAllEntries();
+		}
+		if(e.getActionCommand().compareTo("excel-report")==0) {
+			exportToExcel();
 		}
 		if(e.getActionCommand().compareTo("lastname-event")==0) {
 			String s = (String)form.getLastNameField().getSelectedItem();
@@ -112,7 +125,7 @@ public class FormController implements ActionListener {
 				d,
 				nullToEmptyString((String)form.getCategoryField().getSelectedItem()),
 				nullToEmptyString((String)form.getDesignationField().getSelectedItem()),
-				nullToEmptyString(form.getDescriptionField().getText()),
+				nullToEmptyString((String)form.getDescriptionField().getText()),
 				valueOf(form.getAmountField().getText())
 				);
 	
@@ -219,4 +232,242 @@ public class FormController implements ActionListener {
 		
 		frame.setVisible(true);
 	}
+	
+	private void exportToExcel() {
+		HSSFWorkbook wb = new HSSFWorkbook();
+	
+	    Sheet envSheet = wb.createSheet("Envelope");
+	    Sheet plateSheet = wb.createSheet("Plate");
+	    Sheet dfSheet = wb.createSheet("Designated Funds");
+	    Sheet miscSheet = wb.createSheet("Misc");
+	    Sheet dataSheet = wb.createSheet("Data");
+
+	    // Note that sheet name is Excel must not exceed 31 characters
+	    // and must not contain any of the any of the following characters:
+	    // 0x0000
+	    // 0x0003
+	    // colon (:)
+	    // backslash (\)
+	    // asterisk (*)
+	    // question mark (?)
+	    // forward slash (/)
+	    // opening square bracket ([)
+	    // closing square bracket (])
+
+	    // You can use org.apache.poi.ss.util.WorkbookUtil#createSafeSheetName(String nameProposal)}
+	    // for a safe way to create valid names, this utility replaces invalid characters with a space (' ')
+	    // returns " O'Brien's sales   "
+
+	    // Create a row and put some cells in it. Rows are 0 based.
+	    //Row row = sheet1.createRow((short)0);
+	    // Create a cell and put a value in it.
+	    //Cell cell = row.createCell(0);
+	    //cell.setCellValue(1);
+
+	    CreationHelper createHelper = wb.getCreationHelper();
+	    
+	    // Or do it on one line.
+	    int r=0;
+	    Row row = envSheet.createRow((short)r);
+	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope #"));
+	    row.createCell(1).setCellValue(createHelper.createRichTextString("Check"));
+	    row.createCell(2).setCellValue(createHelper.createRichTextString("Cash"));
+	    row.createCell(3).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    
+	    int check=0,
+	    cash=0,
+	    EFT=0;
+	    
+	    for(Donation d: offering) {
+	    		if(d.getDonor().getEnvelopeNumber().compareToIgnoreCase("")!=0) {
+	    			r++;
+	    		    row = envSheet.createRow((short)r);
+	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
+	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
+	    		    		row.createCell(1).setCellValue(d.getAmount());
+	    		    		check+=d.getAmount();
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
+    		    			row.createCell(2).setCellValue(d.getAmount());
+    		    			cash+=d.getAmount();
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
+    		    			row.createCell(3).setCellValue(d.getAmount());
+    		    			EFT+=d.getAmount();
+	    		    }
+	    		}		
+	    }
+	    
+	    envSheet.createRow((short)5).createCell(5).setCellValue(createHelper.createRichTextString("check"));
+	    envSheet.createRow((short)6).createCell(5).setCellValue(createHelper.createRichTextString("cash"));
+	    envSheet.createRow((short)7).createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    envSheet.getRow(5).createCell(6).setCellValue(check);
+	    envSheet.getRow(6).createCell(6).setCellValue(cash);
+	    envSheet.getRow(7).createCell(6).setCellValue(EFT);
+	    
+	    check=0; 
+	    cash=0;
+	    EFT=0;
+	    
+	    r=0;
+	    row = plateSheet.createRow((short)r);
+	    row.createCell(0).setCellValue(createHelper.createRichTextString("plate - First Name"));
+	    row.createCell(1).setCellValue(createHelper.createRichTextString("plate - Last Name"));
+	    row.createCell(2).setCellValue(createHelper.createRichTextString("Checks"));
+	    row.createCell(3).setCellValue(createHelper.createRichTextString("Cash"));
+	    row.createCell(4).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    row.createCell(5).setCellValue(createHelper.createRichTextString("Address"));
+	    row.createCell(6).setCellValue(createHelper.createRichTextString("City"));
+	    row.createCell(7).setCellValue(createHelper.createRichTextString("State"));
+	    row.createCell(8).setCellValue(createHelper.createRichTextString("Zip"));
+	    
+	    for(Donation d: offering) {
+	    		if(d.getDonor().getEnvelopeNumber().compareToIgnoreCase("")==0) {
+	    			r++;
+	    		    row = plateSheet.createRow((short)r);
+	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getFirstName()));
+	    		    row.createCell(1).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
+	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
+	    		    		row.createCell(2).setCellValue(d.getAmount());
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
+    		    			row.createCell(3).setCellValue(d.getAmount());
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
+    		    			row.createCell(4).setCellValue(d.getAmount());
+	    		    }
+	    		    row.createCell(5).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
+	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDonor().getCity()));
+	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDonor().getState()));
+	    		    row.createCell(8).setCellValue(createHelper.createRichTextString(d.getDonor().getZip()));
+	    		}		
+	    }
+	    
+	    
+	    r=0;
+	    row = dfSheet.createRow((short)r);
+	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope"));
+	    row.createCell(1).setCellValue(createHelper.createRichTextString("First Name"));
+	    row.createCell(2).setCellValue(createHelper.createRichTextString("Last Name"));
+	    row.createCell(3).setCellValue(createHelper.createRichTextString("Checks"));
+	    row.createCell(4).setCellValue(createHelper.createRichTextString("Cash"));
+	    row.createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    row.createCell(6).setCellValue(createHelper.createRichTextString("Fund"));
+	    row.createCell(7).setCellValue(createHelper.createRichTextString("Address"));
+	    row.createCell(8).setCellValue(createHelper.createRichTextString("City"));
+	    row.createCell(9).setCellValue(createHelper.createRichTextString("State"));
+	    row.createCell(10).setCellValue(createHelper.createRichTextString("Zip"));
+	    
+	    Collections.sort(offering);
+	    
+	    for(Donation d: offering) {
+	    		if(d.getCategory().compareToIgnoreCase("designated")==0) {
+	    			r++;
+	    		    row = dfSheet.createRow((short)r);
+	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
+	    		    row.createCell(1).setCellValue(createHelper.createRichTextString(d.getDonor().getFirstName()));
+	    		    row.createCell(2).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
+	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
+	    		    		row.createCell(3).setCellValue(d.getAmount());
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
+    		    			row.createCell(4).setCellValue(d.getAmount());
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
+    		    			row.createCell(5).setCellValue(d.getAmount());
+	    		    }
+	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDescription()));
+	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
+	    		    row.createCell(8).setCellValue(createHelper.createRichTextString(d.getDonor().getCity()));
+	    		    row.createCell(9).setCellValue(createHelper.createRichTextString(d.getDonor().getState()));
+	    		    row.createCell(10).setCellValue(createHelper.createRichTextString(d.getDonor().getZip()));
+	    		}		
+	    }
+	    
+	    r=0;
+	    row = miscSheet.createRow((short)r);
+	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope"));
+	    row.createCell(1).setCellValue(createHelper.createRichTextString("First Name"));
+	    row.createCell(2).setCellValue(createHelper.createRichTextString("Last Name"));
+	    row.createCell(3).setCellValue(createHelper.createRichTextString("Checks"));
+	    row.createCell(4).setCellValue(createHelper.createRichTextString("Cash"));
+	    row.createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    row.createCell(6).setCellValue(createHelper.createRichTextString("Fund"));
+	    row.createCell(7).setCellValue(createHelper.createRichTextString("Address"));
+	    row.createCell(8).setCellValue(createHelper.createRichTextString("City"));
+	    row.createCell(9).setCellValue(createHelper.createRichTextString("State"));
+	    row.createCell(10).setCellValue(createHelper.createRichTextString("Zip"));
+	    
+	    for(Donation d: offering) {
+	    		if(d.getCategory().compareToIgnoreCase("misc.")!=0) {
+	    			r++;
+	    		    row = miscSheet.createRow((short)r);
+	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
+	    		    row.createCell(1).setCellValue(createHelper.createRichTextString(d.getDonor().getFirstName()));
+	    		    row.createCell(2).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
+	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
+	    		    		row.createCell(3).setCellValue(d.getAmount());
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
+    		    			row.createCell(4).setCellValue(d.getAmount());
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
+    		    			row.createCell(5).setCellValue(d.getAmount());
+	    		    }
+	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDescription()));
+	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
+	    		    row.createCell(8).setCellValue(createHelper.createRichTextString(d.getDonor().getCity()));
+	    		    row.createCell(9).setCellValue(createHelper.createRichTextString(d.getDonor().getState()));
+	    		    row.createCell(10).setCellValue(createHelper.createRichTextString(d.getDonor().getZip()));
+	    		}		
+	    }
+	    
+	    r=0;
+	    row = dataSheet.createRow((short)r);
+	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope"));
+	    row.createCell(1).setCellValue(createHelper.createRichTextString("First Name"));
+	    row.createCell(2).setCellValue(createHelper.createRichTextString("Last Name"));
+	    row.createCell(3).setCellValue(createHelper.createRichTextString("Checks"));
+	    row.createCell(4).setCellValue(createHelper.createRichTextString("Cash"));
+	    row.createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    row.createCell(6).setCellValue(createHelper.createRichTextString("Designation"));
+	    row.createCell(7).setCellValue(createHelper.createRichTextString("Description"));
+	    row.createCell(8).setCellValue(createHelper.createRichTextString("Address"));
+	    row.createCell(9).setCellValue(createHelper.createRichTextString("City"));
+	    row.createCell(10).setCellValue(createHelper.createRichTextString("State"));
+	    row.createCell(11).setCellValue(createHelper.createRichTextString("Zip"));
+	    
+	    for(Donation d: offering) {
+	    			r++;
+	    		    row = dataSheet.createRow((short)r);
+	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
+	    		    row.createCell(1).setCellValue(createHelper.createRichTextString(d.getDonor().getFirstName()));
+	    		    row.createCell(2).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
+	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
+	    		    		row.createCell(3).setCellValue(d.getAmount());
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
+    		    			row.createCell(4).setCellValue(d.getAmount());
+	    		    }
+	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
+    		    			row.createCell(5).setCellValue(d.getAmount());
+	    		    }
+	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDesignation()));
+	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDescription()));
+	    		    row.createCell(8).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
+	    		    row.createCell(9).setCellValue(createHelper.createRichTextString(d.getDonor().getCity()));
+	    		    row.createCell(10).setCellValue(createHelper.createRichTextString(d.getDonor().getState()));
+	    		    row.createCell(11).setCellValue(createHelper.createRichTextString(d.getDonor().getZip()));		
+	    }
+	    
+	    try {
+	    		FileOutputStream fileOut = new FileOutputStream("workbook.xls");
+	    		wb.write(fileOut);
+	    		fileOut.close();
+	    }catch(Exception e) {
+	    	
+	    }
+		
+	}
+	
 }

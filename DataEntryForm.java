@@ -199,6 +199,13 @@ public class DataEntryForm extends JFrame {
 		showDataButton.setActionCommand("show-data");
 		showDataButton.addActionListener(showButtonDataController);
 		contentPane.add(showDataButton);
+		
+		FormController exportToExcelController = new FormController(this);
+		JButton exportToExcelButton = new JButton("Create Report");
+		exportToExcelButton.setBounds(297, 197, 134, 29);
+		exportToExcelButton.setActionCommand("excel-report");
+		exportToExcelButton.addActionListener(exportToExcelController);
+		contentPane.add(exportToExcelButton);
 	
 		setVisible(true);
 	}
