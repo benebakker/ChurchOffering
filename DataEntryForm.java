@@ -29,7 +29,25 @@ public class DataEntryForm extends JFrame {
 	private JTextField amountField;
 	private JTextField zipField;
 	private JComboBox<String> designationField;
+	private JLabel nameInDBLabel;
+	private JButton addNameToDBButton;
 	
+	public JButton getAddNameToDBButton() {
+		return addNameToDBButton;
+	}
+
+	public void setAddNameToDBButton(JButton addNameToDBButton) {
+		this.addNameToDBButton = addNameToDBButton;
+	}
+
+	public JLabel getNameInDBLabel() {
+		return nameInDBLabel;
+	}
+
+	public void setNameInDBLabel(String s) {
+		this.nameInDBLabel.setText(s);
+	}
+
 	private FormController checkLastNameBoxController; 
 	private FormController envelopeFieldController;
 	
@@ -104,6 +122,10 @@ public class DataEntryForm extends JFrame {
 		descriptionLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 		descriptionLabel.setBounds(44, 258, 89, 16);
 		contentPane.add(descriptionLabel);
+		
+		nameInDBLabel = new JLabel("");
+		nameInDBLabel.setBounds(297, 6, 134, 16);
+		contentPane.add(nameInDBLabel);
 		
 // text / combobox setup ------------------------------------------------------		
 		checkLastNameBoxController = new FormController(this);
@@ -206,6 +228,15 @@ public class DataEntryForm extends JFrame {
 		exportToExcelButton.setActionCommand("excel-report");
 		exportToExcelButton.addActionListener(exportToExcelController);
 		contentPane.add(exportToExcelButton);
+		
+		FormController addNameToDBController = new FormController(this);
+		addNameToDBButton = new JButton("Add Name to DataBase");
+		addNameToDBButton.setBounds(307, 29, 117, 29);
+		addNameToDBButton.setVisible(false);
+		addNameToDBButton.setEnabled(false);
+		addNameToDBButton.setActionCommand("add-name");
+		addNameToDBButton.addActionListener(addNameToDBController);
+		contentPane.add(addNameToDBButton);
 	
 		setVisible(true);
 	}
@@ -375,6 +406,7 @@ public class DataEntryForm extends JFrame {
 	        		zp = line.substring(nextCommaPlace+1);
 	        		
 	        		if(ln.compareTo("Last Name")==0) {
+	        			System.out.println("in the 'last name' comaprison");
 	        			d.setEnvelopeNumber("");
 		        		d.setFirstName("");
 		        		d.setLastName("");

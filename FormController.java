@@ -1,5 +1,6 @@
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
@@ -10,12 +11,15 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.WorkbookUtil;
+import org.apache.poi.ss.usermodel.FillPatternType;
 
 
 public class FormController implements ActionListener {
@@ -44,11 +48,20 @@ public class FormController implements ActionListener {
 			exportToExcel();
 		}
 		if(e.getActionCommand().compareTo("lastname-event")==0) {
+			resetNonLastNameFields();
 			String s = (String)form.getLastNameField().getSelectedItem();
-			if(checkForUniqueLastName(s))
+			int c = countNameMatches(s);
+			System.out.println("number of matches =" +c);
+			if(c==1)
 				fillInDataUsingLastName(s);
-			else	
-				updateLastNameComboBox(s);
+			else	 if (updateLastNameComboBox(s)==0) {
+				form.getNameInDBLabel().setText("Name Not In DataBase");
+				form.getNameInDBLabel().setVisible(true);
+				form.getNameInDBLabel().setOpaque(true);
+				form.getNameInDBLabel().setBackground(Color.red);
+				form.getAddNameToDBButton().setVisible(true);
+				form.getAddNameToDBButton().setEnabled(true);
+			}
 		}
 		if(e.getActionCommand().compareTo("envelope-event")==0) {
 			String en = (String)form.getEnvelopeField().getText();
@@ -82,7 +95,10 @@ public class FormController implements ActionListener {
 	}
 	
 	private void resetForm() {
-		form.getLastNameField().setSelectedIndex(1);
+		for(Donor d: form.getChurchDB()) {
+			form.getLastNameField().addItem((String)d.getLastName());
+		}
+		form.getLastNameField().setSelectedIndex(0);
 		form.getFirstNameField().setText("");
 		form.getEnvelopeField().setText("");
 		form.getAddressField().setText("");
@@ -93,6 +109,22 @@ public class FormController implements ActionListener {
 		form.getDesignationField().setSelectedIndex(0);
 		form.getDescriptionField().setText("");
 		form.getAmountField().setText("");
+		form.getNameInDBLabel().setVisible(false);
+		form.getAddNameToDBButton().setVisible(false);
+		form.getAddNameToDBButton().setEnabled(false);
+	}
+	
+	private void resetNonLastNameFields() {
+		form.getNameInDBLabel().setText("");
+		form.getNameInDBLabel().setOpaque(false);
+		form.getFirstNameField().setText("");
+		form.getEnvelopeField().setText("");
+		form.getAddressField().setText("");
+		form.getCityField().setText("");
+		form.getZipField().setText("");
+		form.getStateField().setSelectedIndex(0);
+		form.getAddNameToDBButton().setVisible(false);
+		form.getAddNameToDBButton().setEnabled(false);
 	}
 	
 	public String nullToEmptyString(String s) {
@@ -162,26 +194,30 @@ public class FormController implements ActionListener {
 			
 	}
 	
-	private boolean checkForUniqueLastName(String s) {
+	private int countNameMatches(String s) {
 		int matches=0;
 		for(Donor d: form.getChurchDB()) {
 			if(d.getLastName().compareToIgnoreCase(s)==0) {
 				matches++;
 			}
 		}
-		return (matches==1);
+		return matches;
 	}
 	
-	private void updateLastNameComboBox(String s) {
+	private int updateLastNameComboBox(String s) {
+		int count = 0;
 		form.getLastNameField().removeAllItems();
 		form.getLastNameField().addItem(s);
 		for(Donor d: form.getChurchDB()) {
 			if(d.getLastName().length()>=s.length()) {
 				if (d.getLastName().substring(0, s.length()).compareToIgnoreCase(s)==0){
+					count++;
+					System.out.println("adding : " + d.getLastName());
 					form.getLastNameField().addItem(d.getLastName());
 				}
 			}
-		}	
+		}
+		return count;
 	}
 
 	private void showAllEntries(){
@@ -269,6 +305,12 @@ public class FormController implements ActionListener {
 	    // Or do it on one line.
 	    int r=0;
 	    Row row = envSheet.createRow((short)r);
+	    
+	    HSSFCellStyle my_style = wb.createCellStyle();
+        /* We will now specify a background cell color */
+        my_style.setFillForegroundColor(new HSSFColor.BLUE().getIndex());
+        my_style.setFillBackgroundColor(new HSSFColor.RED().getIndex());
+	    
 	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope #"));
 	    row.createCell(1).setCellValue(createHelper.createRichTextString("Check"));
 	    row.createCell(2).setCellValue(createHelper.createRichTextString("Cash"));
