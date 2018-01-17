@@ -38,7 +38,9 @@ public class FormController implements ActionListener {
 		if(e.getActionCommand().compareTo("enter-data")==0) {
 			Donation d = getFormData();
 			addDonationToOffering(d);
+			form.getLastNameField().setActionCommand("lastname-event-off");
 			resetForm();
+			form.getLastNameField().setActionCommand("lastname-event-on");
 		}
 		if(e.getActionCommand().compareTo("show-data")==0) {
 			System.out.println("in the show-data event block...");
@@ -47,11 +49,12 @@ public class FormController implements ActionListener {
 		if(e.getActionCommand().compareTo("excel-report")==0) {
 			exportToExcel();
 		}
-		if(e.getActionCommand().compareTo("lastname-event")==0) {
+		if(e.getActionCommand().compareTo("lastname-event-on")==0) {
+			form.getLastNameField().setActionCommand("lastname-event-off");
 			resetNonLastNameFields();
 			String s = (String)form.getLastNameField().getSelectedItem();
 			int c = countNameMatches(s);
-			System.out.println("number of matches =" +c);
+			System.out.println("number of matches =" + c);
 			if(c==1)
 				fillInDataUsingLastName(s);
 			else	 if (updateLastNameComboBox(s)==0) {
@@ -62,6 +65,7 @@ public class FormController implements ActionListener {
 				form.getAddNameToDBButton().setVisible(true);
 				form.getAddNameToDBButton().setEnabled(true);
 			}
+			form.getLastNameField().setActionCommand("lastname-event-on");
 		}
 		if(e.getActionCommand().compareTo("envelope-event")==0) {
 			String en = (String)form.getEnvelopeField().getText();
@@ -95,9 +99,7 @@ public class FormController implements ActionListener {
 	}
 	
 	private void resetForm() {
-		for(Donor d: form.getChurchDB()) {
-			form.getLastNameField().addItem((String)d.getLastName());
-		}
+		updateLastNameComboBox("");
 		form.getLastNameField().setSelectedIndex(0);
 		form.getFirstNameField().setText("");
 		form.getEnvelopeField().setText("");
@@ -205,20 +207,23 @@ public class FormController implements ActionListener {
 	}
 	
 	private int updateLastNameComboBox(String s) {
+		System.out.println("in updateLastNameComboBox()....");
 		int count = 0;
 		form.getLastNameField().removeAllItems();
 		form.getLastNameField().addItem(s);
 		for(Donor d: form.getChurchDB()) {
 			if(d.getLastName().length()>=s.length()) {
+				System.out.print("d.getLastName().substring(0, s.length() = " + d.getLastName().substring(0, s.length()));
+				System.out.println(" s = " + s);
 				if (d.getLastName().substring(0, s.length()).compareToIgnoreCase(s)==0){
-					count++;
 					System.out.println("adding : " + d.getLastName());
-					form.getLastNameField().addItem(d.getLastName());
+					form.getLastNameField().insertItemAt(d.getLastName(),count);
+					count++;
 				}
 			}
 		}
-		return count;
-	}
+	return count;
+}
 
 	private void showAllEntries(){
 		

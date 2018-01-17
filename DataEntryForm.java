@@ -131,7 +131,7 @@ public class DataEntryForm extends JFrame {
 		checkLastNameBoxController = new FormController(this);
 		lastNameField = new JComboBox<String>();
 		lastNameField.setEditable(true);
-		lastNameField.setActionCommand("lastname-event");
+		lastNameField.setActionCommand("lastname-event-on");
 		lastNameField.setBounds(155, 1, 130, 26);
 		for(Donor d:churchDB) {
 			lastNameField.addItem(d.getLastName());
@@ -349,8 +349,6 @@ public class DataEntryForm extends JFrame {
 	
 	public void loadChurchDB() {
 		
-		System.out.println("reading in the church database");
-		
 		churchDB = new ArrayList<Donor>();
 		
 		Donor d;
@@ -362,31 +360,22 @@ public class DataEntryForm extends JFrame {
 		String st;
 		String zp;
 		
-		// The name of the file to open.
 	    String churchDBfile = "churchDB1.csv";
-
-	    // This will reference one line at a time
 	    String line = null;
-
 	    try {
-	    		// FileReader reads text files in the default encoding.
 	    		FileReader fileReader = new FileReader(churchDBfile);
 
 	        // Always wrap FileReader in BufferedReader.
 	        BufferedReader bufferedReader = new BufferedReader(fileReader);
 	        
 	        while((line = bufferedReader.readLine()) != null) {
-	        		//System.out.println(line);
 	        		d = new Donor();
-	        		//System.out.println(line);
-	        		int commaPlace = line.indexOf(',');
-	        		
+	        		int commaPlace = line.indexOf(',');	
 	        		try {
 	        			env = line.substring(0, commaPlace);
 	        		}
 	        		catch (Exception e){
 	        			env="0";
-	        			System.out.println(env);
 	        		}
 	        		
 	        		int nextCommaPlace = line.indexOf(',', commaPlace+1);
@@ -406,7 +395,7 @@ public class DataEntryForm extends JFrame {
 	        		zp = line.substring(nextCommaPlace+1);
 	        		
 	        		if(ln.compareTo("Last Name")==0) {
-	        			System.out.println("in the 'last name' comaprison");
+	        			System.out.println("configuring the first donor - removing csv file headers....");
 	        			d.setEnvelopeNumber("");
 		        		d.setFirstName("");
 		        		d.setLastName("");
