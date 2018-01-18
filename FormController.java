@@ -282,7 +282,23 @@ public class FormController implements ActionListener {
 	    Sheet dfSheet = wb.createSheet("Designated Funds");
 	    Sheet miscSheet = wb.createSheet("Misc");
 	    Sheet dataSheet = wb.createSheet("Data");
-
+	    
+	    CreationHelper createHelper = wb.getCreationHelper();
+	    
+	    createEnvSheet(wb, createHelper, envSheet);
+	    createPlateSheet(wb, createHelper, plateSheet);
+	    createDfSheet(wb, createHelper, dfSheet);
+	    createMiscSheet(wb, createHelper, miscSheet);
+	    createDataSheet(wb, createHelper, dataSheet);
+	    
+	    try {
+    			FileOutputStream fileOut = new FileOutputStream("workbook.xls");
+    			wb.write(fileOut);
+    			fileOut.close();
+	    }catch(Exception e) {
+	    	
+	    }
+	    
 	    // Note that sheet name is Excel must not exceed 31 characters
 	    // and must not contain any of the any of the following characters:
 	    // 0x0000
@@ -304,17 +320,15 @@ public class FormController implements ActionListener {
 	    // Create a cell and put a value in it.
 	    //Cell cell = row.createCell(0);
 	    //cell.setCellValue(1);
-
-	    CreationHelper createHelper = wb.getCreationHelper();
-	    
+	}
+	
+    private void createEnvSheet(HSSFWorkbook wb, CreationHelper createHelper, Sheet envSheet) {
+    	
+		System.out.println("in the create envelope sheet method....");
+    	
 	    // Or do it on one line.
 	    int r=0;
 	    Row row = envSheet.createRow((short)r);
-	    
-	    HSSFCellStyle my_style = wb.createCellStyle();
-        /* We will now specify a background cell color */
-        my_style.setFillForegroundColor(new HSSFColor.BLUE().getIndex());
-        my_style.setFillBackgroundColor(new HSSFColor.RED().getIndex());
 	    
 	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope #"));
 	    row.createCell(1).setCellValue(createHelper.createRichTextString("Check"));
@@ -326,7 +340,7 @@ public class FormController implements ActionListener {
 	    EFT=0;
 	    
 	    for(Donation d: offering) {
-	    		if(d.getDonor().getEnvelopeNumber().compareToIgnoreCase("")!=0) {
+	    		if(d.getDesignation().compareToIgnoreCase("Envelope")==0){
 	    			r++;
 	    		    row = envSheet.createRow((short)r);
 	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
@@ -345,19 +359,37 @@ public class FormController implements ActionListener {
 	    		}		
 	    }
 	    
-	    envSheet.createRow((short)5).createCell(5).setCellValue(createHelper.createRichTextString("check"));
-	    envSheet.createRow((short)6).createCell(5).setCellValue(createHelper.createRichTextString("cash"));
-	    envSheet.createRow((short)7).createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    if(envSheet.getRow((short)5)==null)
+    			envSheet.createRow((short)5).createCell(5).setCellValue(createHelper.createRichTextString("check"));
+	    else
+    			envSheet.getRow((short)5).createCell(5).setCellValue(createHelper.createRichTextString("check"));
+    
+	    if(envSheet.getRow((short)6)==null)
+			envSheet.createRow((short)6).createCell(5).setCellValue(createHelper.createRichTextString("cash"));
+	    else
+			envSheet.getRow((short)6).createCell(5).setCellValue(createHelper.createRichTextString("cash"));
+    
+	    if(envSheet.getRow((short)7)==null)
+	    		envSheet.createRow((short)7).createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    else
+	    		envSheet.getRow((short)7).createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
+    
 	    envSheet.getRow(5).createCell(6).setCellValue(check);
 	    envSheet.getRow(6).createCell(6).setCellValue(cash);
 	    envSheet.getRow(7).createCell(6).setCellValue(EFT);
+    	
+    }
+ 
+    private void createPlateSheet(HSSFWorkbook wb, CreationHelper createHelper, Sheet plateSheet) {
+    	
+		System.out.println("in the create plate sheet method....");
+    	
+	    int check=0; 
+	    int cash=0;
+	    int EFT=0;
 	    
-	    check=0; 
-	    cash=0;
-	    EFT=0;
-	    
-	    r=0;
-	    row = plateSheet.createRow((short)r);
+	    int r=0;
+	    Row row = plateSheet.createRow((short)r);
 	    row.createCell(0).setCellValue(createHelper.createRichTextString("plate - First Name"));
 	    row.createCell(1).setCellValue(createHelper.createRichTextString("plate - Last Name"));
 	    row.createCell(2).setCellValue(createHelper.createRichTextString("Checks"));
@@ -369,19 +401,22 @@ public class FormController implements ActionListener {
 	    row.createCell(8).setCellValue(createHelper.createRichTextString("Zip"));
 	    
 	    for(Donation d: offering) {
-	    		if(d.getDonor().getEnvelopeNumber().compareToIgnoreCase("")==0) {
+	    		if(d.getDesignation().compareToIgnoreCase("Plate")==0) {
 	    			r++;
 	    		    row = plateSheet.createRow((short)r);
 	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getFirstName()));
 	    		    row.createCell(1).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
 	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
 	    		    		row.createCell(2).setCellValue(d.getAmount());
+	    		    		check+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
     		    			row.createCell(3).setCellValue(d.getAmount());
+    		    			cash+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
     		    			row.createCell(4).setCellValue(d.getAmount());
+    		    			EFT+=d.getAmount();
 	    		    }
 	    		    row.createCell(5).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
 	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDonor().getCity()));
@@ -390,9 +425,36 @@ public class FormController implements ActionListener {
 	    		}		
 	    }
 	    
+	    if(plateSheet.getRow((short)5)==null)
+	    		plateSheet.createRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+	    else
+	    		plateSheet.getRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
 	    
-	    r=0;
-	    row = dfSheet.createRow((short)r);
+	    if(plateSheet.getRow((short)6)==null)
+    			plateSheet.createRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+	    else
+    			plateSheet.getRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+	    
+	    if(plateSheet.getRow((short)7)==null)
+			plateSheet.createRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    else
+			plateSheet.getRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    
+	    plateSheet.getRow(5).createCell(11).setCellValue(check);
+	    plateSheet.getRow(6).createCell(11).setCellValue(cash);
+	    plateSheet.getRow(7).createCell(11).setCellValue(EFT);
+    }
+  
+    private void createDfSheet(HSSFWorkbook wb, CreationHelper createHelper, Sheet dfSheet) {
+    	
+    		System.out.println("in the create designate fund sheet method....");
+    		
+	    int check=0; 
+	    int cash=0;
+	    int EFT=0;
+    	
+	    int r=0;
+	    Row row = dfSheet.createRow((short)r);
 	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope"));
 	    row.createCell(1).setCellValue(createHelper.createRichTextString("First Name"));
 	    row.createCell(2).setCellValue(createHelper.createRichTextString("Last Name"));
@@ -405,10 +467,11 @@ public class FormController implements ActionListener {
 	    row.createCell(9).setCellValue(createHelper.createRichTextString("State"));
 	    row.createCell(10).setCellValue(createHelper.createRichTextString("Zip"));
 	    
-	    Collections.sort(offering);
+	    //Collections.sort(offering);
 	    
 	    for(Donation d: offering) {
-	    		if(d.getCategory().compareToIgnoreCase("designated")==0) {
+	    		System.out.println("the category is " + d.getCategory());
+	    		if(d.getDesignation().compareToIgnoreCase("Designated")==0) {
 	    			r++;
 	    		    row = dfSheet.createRow((short)r);
 	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
@@ -416,12 +479,15 @@ public class FormController implements ActionListener {
 	    		    row.createCell(2).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
 	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
 	    		    		row.createCell(3).setCellValue(d.getAmount());
+	    		    		check+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
     		    			row.createCell(4).setCellValue(d.getAmount());
+    		    			cash+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
     		    			row.createCell(5).setCellValue(d.getAmount());
+    		    			EFT+=d.getAmount();
 	    		    }
 	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDescription()));
 	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
@@ -431,8 +497,35 @@ public class FormController implements ActionListener {
 	    		}		
 	    }
 	    
-	    r=0;
-	    row = miscSheet.createRow((short)r);
+	    if(dfSheet.getRow((short)5)==null)
+    			dfSheet.createRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+	    else
+    			dfSheet.getRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+    
+	    if(dfSheet.getRow((short)6)==null)
+			dfSheet.createRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+	    else
+			dfSheet.getRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+    
+	    if(dfSheet.getRow((short)7)==null)
+	    		dfSheet.createRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    else
+	    		dfSheet.getRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+    
+	    dfSheet.getRow(5).createCell(11).setCellValue(check);
+	    dfSheet.getRow(6).createCell(11).setCellValue(cash);
+	    dfSheet.getRow(7).createCell(11).setCellValue(EFT);
+	    
+    }
+    
+    private void createMiscSheet(HSSFWorkbook wb, CreationHelper createHelper, Sheet miscSheet) {
+    	
+	    int check=0; 
+	    int cash=0;
+	    int EFT=0;
+    	
+	    int r=0;
+	    Row row = miscSheet.createRow((short)r);
 	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope"));
 	    row.createCell(1).setCellValue(createHelper.createRichTextString("First Name"));
 	    row.createCell(2).setCellValue(createHelper.createRichTextString("Last Name"));
@@ -446,7 +539,7 @@ public class FormController implements ActionListener {
 	    row.createCell(10).setCellValue(createHelper.createRichTextString("Zip"));
 	    
 	    for(Donation d: offering) {
-	    		if(d.getCategory().compareToIgnoreCase("misc.")!=0) {
+	    		if(d.getDesignation().compareToIgnoreCase("misc.")!=0) {
 	    			r++;
 	    		    row = miscSheet.createRow((short)r);
 	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
@@ -454,12 +547,15 @@ public class FormController implements ActionListener {
 	    		    row.createCell(2).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
 	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
 	    		    		row.createCell(3).setCellValue(d.getAmount());
+	    		    		check+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
     		    			row.createCell(4).setCellValue(d.getAmount());
+    		    			cash+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
     		    			row.createCell(5).setCellValue(d.getAmount());
+    		    			EFT+=d.getAmount();
 	    		    }
 	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDescription()));
 	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
@@ -469,8 +565,35 @@ public class FormController implements ActionListener {
 	    		}		
 	    }
 	    
-	    r=0;
-	    row = dataSheet.createRow((short)r);
+	    if(miscSheet.getRow((short)5)==null)
+			miscSheet.createRow((short)5).createCell(8).setCellValue(createHelper.createRichTextString("check"));
+	    else
+			miscSheet.getRow((short)5).createCell(8).setCellValue(createHelper.createRichTextString("check"));
+
+	    if(miscSheet.getRow((short)6)==null)
+	    		miscSheet.createRow((short)6).createCell(8).setCellValue(createHelper.createRichTextString("cash"));
+	    else
+	    		miscSheet.getRow((short)6).createCell(8).setCellValue(createHelper.createRichTextString("cash"));
+
+	    if(miscSheet.getRow((short)7)==null)
+    			miscSheet.createRow((short)7).createCell(8).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    else
+    			miscSheet.getRow((short)7).createCell(8).setCellValue(createHelper.createRichTextString("EFT PP"));
+
+	    miscSheet.getRow(5).createCell(9).setCellValue(check);
+	    miscSheet.getRow(6).createCell(9).setCellValue(cash);
+	    miscSheet.getRow(7).createCell(9).setCellValue(EFT);
+	    
+    }
+  
+    private void createDataSheet(HSSFWorkbook wb, CreationHelper createHelper, Sheet dataSheet) {
+    	
+	    int check=0; 
+	    int cash=0;
+	    int EFT=0;
+
+	    int r=0;
+	    Row row = dataSheet.createRow((short)r);
 	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope"));
 	    row.createCell(1).setCellValue(createHelper.createRichTextString("First Name"));
 	    row.createCell(2).setCellValue(createHelper.createRichTextString("Last Name"));
@@ -492,12 +615,15 @@ public class FormController implements ActionListener {
 	    		    row.createCell(2).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
 	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
 	    		    		row.createCell(3).setCellValue(d.getAmount());
+	    		    		check+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
     		    			row.createCell(4).setCellValue(d.getAmount());
+    		    			cash+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
     		    			row.createCell(5).setCellValue(d.getAmount());
+    		    			EFT+=d.getAmount();
 	    		    }
 	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDesignation()));
 	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDescription()));
@@ -507,14 +633,25 @@ public class FormController implements ActionListener {
 	    		    row.createCell(11).setCellValue(createHelper.createRichTextString(d.getDonor().getZip()));		
 	    }
 	    
-	    try {
-	    		FileOutputStream fileOut = new FileOutputStream("workbook.xls");
-	    		wb.write(fileOut);
-	    		fileOut.close();
-	    }catch(Exception e) {
-	    	
-	    }
-		
-	}
-	
+	    if(dataSheet.getRow((short)5)==null)
+			dataSheet.createRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+	    else
+			dataSheet.getRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+
+	    if(dataSheet.getRow((short)6)==null)
+	    		dataSheet.createRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+	    else
+	    		dataSheet.getRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+
+	    if(dataSheet.getRow((short)7)==null)
+    			dataSheet.createRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    else
+    			dataSheet.getRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+
+	    dataSheet.getRow(5).createCell(11).setCellValue(check);
+	    dataSheet.getRow(6).createCell(11).setCellValue(cash);
+	    dataSheet.getRow(7).createCell(11).setCellValue(EFT);
+    }
+    
+
 }
