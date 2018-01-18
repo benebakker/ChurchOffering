@@ -412,9 +412,9 @@ public class DataEntryForm extends JFrame {
 		        		d.setCity(ct);
 		        		d.setState(st);
 		        		d.setZip(zp);
+
 		        	}
-	        		
-	        		churchDB.add(d);       		
+	        		churchDB.add(d);   		
 	        }   
 
 	        // Always close files.

@@ -3,7 +3,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -35,8 +39,21 @@ public class FormController implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		System.out.println("event occured - " + e.getActionCommand());
-		if(e.getActionCommand().compareTo("enter-data")==0) {
+		if(e.getActionCommand().compareTo("add-name")==0) {
 			Donation d = getFormData();
+			System.out.println("adding "+d.getDonor() + " to the database ");
+			form.getChurchDB().add(d.getDonor());
+			updateChurchDB();
+			form.getNameInDBLabel().setVisible(false);
+			form.getAddNameToDBButton().setVisible(false);
+			form.getAddNameToDBButton().setEnabled(false);	
+		}
+		if(e.getActionCommand().compareTo("enter-data")==0) {
+			if(illegalEnvelope())
+				return;
+			Donation d = getFormData();
+			if (illegalEntry(d))
+				return;
 			addDonationToOffering(d);
 			form.getLastNameField().setActionCommand("lastname-event-off");
 			resetForm();
@@ -129,6 +146,34 @@ public class FormController implements ActionListener {
 		form.getAddNameToDBButton().setEnabled(false);
 	}
 	
+	private void updateChurchDB() {
+
+	    String churchDBfile = "churchDB1.csv";
+
+	    try {
+	    		Writer fileWriter = new FileWriter(churchDBfile, false); //overwrites file
+	    		
+   			fileWriter.write("Env #,Last Name,First Name,Address,City,State,Zip\n");
+   			
+   			Donor d;
+	    		for(int i=1; i<form.getChurchDB().size();i++) {
+	    			d=form.getChurchDB().get(i);
+	    			fileWriter.write(d.getEnvelopeNumber()+","+
+	    							d.getLastName()+","+
+	    							d.getFirstName()+","+
+	    							d.getAddress()+","+
+	    							d.getCity()+","+
+	    							d.getState()+","+
+	    							d.getZip()+"\n");
+	    		}
+  		
+		    // Always close files.
+		    fileWriter.close(); 
+	    }catch(Exception e) {
+	    }
+	}
+
+
 	public String nullToEmptyString(String s) {
 		if (s==null)
 			return "";
@@ -272,6 +317,41 @@ public class FormController implements ActionListener {
 		frame.setSize(1200, 400);
 		
 		frame.setVisible(true);
+	}
+	
+	private boolean illegalEnvelope() {
+		
+		if(form.getEnvelopeField().getText().compareTo("")==0) {
+			System.out.println("envelope field is empty...");
+			return false;
+		}
+		else
+			for(Donor d: form.getChurchDB()) {
+				if(form.getEnvelopeField().getText().compareTo(d.getEnvelopeNumber())==0) {
+					if(((String) form.getLastNameField().getSelectedItem()).compareTo(d.getLastName())!=0){
+						form.alertMessage("Your envelope number does not match the church database name for that number");
+						return true;
+					}
+				}
+			}
+		return false;
+	}
+	
+	private boolean illegalEntry(Donation d) {
+		if(d.getDesignation().compareToIgnoreCase("envelope")==0)
+			if(d.getDonor().getEnvelopeNumber().compareTo("")==0) {
+				form.alertMessage("All entries with designation=envelope must have an envelope number");
+				return true;
+			}
+		if(d.getCategory().compareTo("")==0) {
+			form.alertMessage("All entries must have a category");
+			return true;
+		}
+		if(d.getDesignation().compareTo("")==0) {	
+			form.alertMessage("All entries must have a designation");
+			return true;
+		}
+		return false;
 	}
 	
 	private void exportToExcel() {
@@ -447,7 +527,7 @@ public class FormController implements ActionListener {
   
     private void createDfSheet(HSSFWorkbook wb, CreationHelper createHelper, Sheet dfSheet) {
     	
-    		System.out.println("in the create designate fund sheet method....");
+    		System.out.println("in the create designated fund sheet method....");
     		
 	    int check=0; 
 	    int cash=0;
@@ -497,24 +577,26 @@ public class FormController implements ActionListener {
 	    		}		
 	    }
 	    
+	    int col=12;
+	    
 	    if(dfSheet.getRow((short)5)==null)
-    			dfSheet.createRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+    			dfSheet.createRow((short)5).createCell(col).setCellValue(createHelper.createRichTextString("check"));
 	    else
-    			dfSheet.getRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+    			dfSheet.getRow((short)5).createCell(col).setCellValue(createHelper.createRichTextString("check"));
     
 	    if(dfSheet.getRow((short)6)==null)
-			dfSheet.createRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+			dfSheet.createRow((short)6).createCell(col).setCellValue(createHelper.createRichTextString("cash"));
 	    else
-			dfSheet.getRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+			dfSheet.getRow((short)6).createCell(col).setCellValue(createHelper.createRichTextString("cash"));
     
 	    if(dfSheet.getRow((short)7)==null)
-	    		dfSheet.createRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    		dfSheet.createRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
 	    else
-	    		dfSheet.getRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    		dfSheet.getRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
     
-	    dfSheet.getRow(5).createCell(11).setCellValue(check);
-	    dfSheet.getRow(6).createCell(11).setCellValue(cash);
-	    dfSheet.getRow(7).createCell(11).setCellValue(EFT);
+	    dfSheet.getRow(5).createCell(col+1).setCellValue(check);
+	    dfSheet.getRow(6).createCell(col+1).setCellValue(cash);
+	    dfSheet.getRow(7).createCell(col+1).setCellValue(EFT);
 	    
     }
     
@@ -565,24 +647,26 @@ public class FormController implements ActionListener {
 	    		}		
 	    }
 	    
+	    int col=12;
+	    
 	    if(miscSheet.getRow((short)5)==null)
-			miscSheet.createRow((short)5).createCell(8).setCellValue(createHelper.createRichTextString("check"));
+			miscSheet.createRow((short)5).createCell(col).setCellValue(createHelper.createRichTextString("check"));
 	    else
-			miscSheet.getRow((short)5).createCell(8).setCellValue(createHelper.createRichTextString("check"));
+			miscSheet.getRow((short)5).createCell(col).setCellValue(createHelper.createRichTextString("check"));
 
 	    if(miscSheet.getRow((short)6)==null)
-	    		miscSheet.createRow((short)6).createCell(8).setCellValue(createHelper.createRichTextString("cash"));
+	    		miscSheet.createRow((short)6).createCell(col).setCellValue(createHelper.createRichTextString("cash"));
 	    else
-	    		miscSheet.getRow((short)6).createCell(8).setCellValue(createHelper.createRichTextString("cash"));
+	    		miscSheet.getRow((short)6).createCell(col).setCellValue(createHelper.createRichTextString("cash"));
 
 	    if(miscSheet.getRow((short)7)==null)
-    			miscSheet.createRow((short)7).createCell(8).setCellValue(createHelper.createRichTextString("EFT PP"));
+    			miscSheet.createRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
 	    else
-    			miscSheet.getRow((short)7).createCell(8).setCellValue(createHelper.createRichTextString("EFT PP"));
+    			miscSheet.getRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
 
-	    miscSheet.getRow(5).createCell(9).setCellValue(check);
-	    miscSheet.getRow(6).createCell(9).setCellValue(cash);
-	    miscSheet.getRow(7).createCell(9).setCellValue(EFT);
+	    miscSheet.getRow(5).createCell(col+1).setCellValue(check);
+	    miscSheet.getRow(6).createCell(col+1).setCellValue(cash);
+	    miscSheet.getRow(7).createCell(col+1).setCellValue(EFT);
 	    
     }
   
@@ -600,7 +684,7 @@ public class FormController implements ActionListener {
 	    row.createCell(3).setCellValue(createHelper.createRichTextString("Checks"));
 	    row.createCell(4).setCellValue(createHelper.createRichTextString("Cash"));
 	    row.createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
-	    row.createCell(6).setCellValue(createHelper.createRichTextString("Designation"));
+	    row.createCell(6).setCellValue(createHelper.createRichTextString("Category"));
 	    row.createCell(7).setCellValue(createHelper.createRichTextString("Description"));
 	    row.createCell(8).setCellValue(createHelper.createRichTextString("Address"));
 	    row.createCell(9).setCellValue(createHelper.createRichTextString("City"));
@@ -633,24 +717,26 @@ public class FormController implements ActionListener {
 	    		    row.createCell(11).setCellValue(createHelper.createRichTextString(d.getDonor().getZip()));		
 	    }
 	    
+	    int col=13;
+	    
 	    if(dataSheet.getRow((short)5)==null)
-			dataSheet.createRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+			dataSheet.createRow((short)5).createCell(col).setCellValue(createHelper.createRichTextString("check"));
 	    else
-			dataSheet.getRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+			dataSheet.getRow((short)5).createCell(col).setCellValue(createHelper.createRichTextString("check"));
 
 	    if(dataSheet.getRow((short)6)==null)
-	    		dataSheet.createRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+	    		dataSheet.createRow((short)6).createCell(col).setCellValue(createHelper.createRichTextString("cash"));
 	    else
-	    		dataSheet.getRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+	    		dataSheet.getRow((short)6).createCell(col).setCellValue(createHelper.createRichTextString("cash"));
 
 	    if(dataSheet.getRow((short)7)==null)
-    			dataSheet.createRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+    			dataSheet.createRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
 	    else
-    			dataSheet.getRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+    			dataSheet.getRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
 
-	    dataSheet.getRow(5).createCell(11).setCellValue(check);
-	    dataSheet.getRow(6).createCell(11).setCellValue(cash);
-	    dataSheet.getRow(7).createCell(11).setCellValue(EFT);
+	    dataSheet.getRow(5).createCell(col+1).setCellValue(check);
+	    dataSheet.getRow(6).createCell(col+1).setCellValue(cash);
+	    dataSheet.getRow(7).createCell(col+1).setCellValue(EFT);
     }
     
 
