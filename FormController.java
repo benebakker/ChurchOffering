@@ -12,19 +12,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.HSSFColor;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.util.WorkbookUtil;
-import org.apache.poi.ss.usermodel.FillPatternType;
-
+//import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.hssf.util.*;
+//import org.apache.poi.hssf.util.HSSFColor;
+//import org.apache.poi.ss.usermodel.Cell;
+//import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.*;
+//import org.apache.poi.ss.usermodel.CreationHelper;
+//import org.apache.poi.ss.usermodel.Row;
+//import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.util.*;
 
 public class FormController implements ActionListener {
 	
@@ -69,19 +73,19 @@ public class FormController implements ActionListener {
 		if(e.getActionCommand().compareTo("lastname-event-on")==0) {
 			form.getLastNameField().setActionCommand("lastname-event-off");
 			resetNonLastNameFields();
-			String s = (String)form.getLastNameField().getSelectedItem();
+			String s = (String)form.getLastNameField().getText();
 			int c = countNameMatches(s);
 			System.out.println("number of matches =" + c);
 			if(c==1)
 				fillInDataUsingLastName(s);
-			else	 if (updateLastNameComboBox(s)==0) {
-				form.getNameInDBLabel().setText("Name Not In DataBase");
-				form.getNameInDBLabel().setVisible(true);
-				form.getNameInDBLabel().setOpaque(true);
-				form.getNameInDBLabel().setBackground(Color.red);
-				form.getAddNameToDBButton().setVisible(true);
-				form.getAddNameToDBButton().setEnabled(true);
-			}
+	//		else	 if (updateLastNameComboBox(s)==0) {
+	//			form.getNameInDBLabel().setText("Name Not In DataBase");
+	//			form.getNameInDBLabel().setVisible(true);
+	//			form.getNameInDBLabel().setOpaque(true);
+	//			form.getNameInDBLabel().setBackground(Color.red);
+	//			form.getAddNameToDBButton().setVisible(true);
+	//			form.getAddNameToDBButton().setEnabled(true);
+	//		}
 			form.getLastNameField().setActionCommand("lastname-event-on");
 		}
 		if(e.getActionCommand().compareTo("envelope-event")==0) {
@@ -106,6 +110,132 @@ public class FormController implements ActionListener {
 				form.alertMessage("Envelope number does not exist.");
 			}	
 		}
+		if(e.getActionCommand().compareTo("lastname-event")==0) {
+			System.out.println("last name event has occurred...");
+
+			/* - the Array list implementation which leads to a drop down selection
+			ArrayList<String> namesList = new ArrayList<String>();
+			
+			for(Donor d: form.getChurchDB()) {
+				String searchName = form.getLastNameField().getText();
+				if(d.getLastName().length()>=searchName.length()) {
+					if(d.getLastName().substring(0,searchName.length()).compareToIgnoreCase(searchName)==0) {
+						namesList.add( d.getLastName()+", " + d.getFirstName() );
+					}
+				}
+			}
+			
+	        String n = (String)JOptionPane.showInputDialog(null, "Select a person ",
+	                "names", JOptionPane.QUESTION_MESSAGE, null, namesList.toArray(), namesList.toArray()[0]);
+	        System.out.println(n);
+			*/
+			
+			// the array implementation which leads to a scroll box
+			String[] namesList = new String [form.getChurchDB().size()];
+			
+			int i=0;
+			for( Donor d: form.getChurchDB()) {
+				String searchName = form.getLastNameField().getText();
+				if(d.getLastName().length()>=searchName.length()) {
+					if(d.getLastName().substring(0,searchName.length()).compareToIgnoreCase(searchName)==0) {
+						namesList[i] = d.getLastName()+", " + d.getFirstName()+"  ";
+						i++;
+					}
+				}
+			}
+			
+			System.out.println("i="+i);
+			
+			// name not in database
+			if (i==0) {
+				resetNonLastNameFields();
+				form.getNameInDBLabel().setText("Name Not In DataBase");
+				form.getNameInDBLabel().setVisible(true);
+				form.getNameInDBLabel().setOpaque(true);
+				form.getNameInDBLabel().setBackground(Color.red);
+				form.getAddNameToDBButton().setVisible(true);
+				form.getAddNameToDBButton().setEnabled(true);
+			}  // only one name match
+			else if(i==1) {
+				System.out.println("in the i==1 section...");
+				boolean match=false;
+				
+				for(Donor d: form.getChurchDB()) {
+					if (d.getLastName().compareToIgnoreCase(form.getLastNameField().getText())==0) {
+						System.out.println("one name match found, filling in name fields...");
+						form.getLastNameField().setText(d.getLastName());
+						form.getFirstNameField().setText(d.getFirstName());
+						form.getEnvelopeField().setText(d.getEnvelopeNumber());
+						form.getAddressField().setText(d.getAddress());
+						form.getCityField().setText(d.getCity());
+						form.getStateField().setSelectedItem(d.getState());
+						form.getZipField().setText(d.getZip());
+						match=true;
+					}
+				}
+				if(!match) {
+					String n = (String)JOptionPane.showInputDialog(null, "Select a person ",
+			                "names", JOptionPane.QUESTION_MESSAGE, null, namesList, namesList[0]);
+						System.out.println(n);
+
+						if(n!=null) {
+							for(Donor d: form.getChurchDB()) {
+								if(d.getLastName().compareToIgnoreCase(n.substring(0, n.indexOf(',')))==0)
+									if(d.getFirstName().compareToIgnoreCase(n.substring(n.indexOf(',')+2, n.length()-2))==0){
+									form.getLastNameField().setText(d.getLastName());
+									form.getFirstNameField().setText(d.getFirstName());
+									form.getEnvelopeField().setText(d.getEnvelopeNumber());
+									form.getAddressField().setText(d.getAddress());
+									form.getCityField().setText(d.getCity());
+									form.getStateField().setSelectedItem(d.getState());
+									form.getZipField().setText(d.getZip());
+									break;
+								}
+							}
+						}
+				}
+			}
+			 else{
+			
+				String n = (String)JOptionPane.showInputDialog(null, "Select a person ",
+	                "names", JOptionPane.QUESTION_MESSAGE, null, namesList, namesList[0]);
+				System.out.println(n);
+
+				if(n!=null) {
+					for(Donor d: form.getChurchDB()) {
+						if(d.getLastName().compareToIgnoreCase(n.substring(0, n.indexOf(',')))==0)
+							if(d.getFirstName().compareToIgnoreCase(n.substring(n.indexOf(',')+2, n.length()-2))==0){
+							form.getLastNameField().setText(d.getLastName());
+							form.getFirstNameField().setText(d.getFirstName());
+							form.getEnvelopeField().setText(d.getEnvelopeNumber());
+							form.getAddressField().setText(d.getAddress());
+							form.getCityField().setText(d.getCity());
+							form.getStateField().setSelectedItem(d.getState());
+							form.getZipField().setText(d.getZip());
+							break;
+						}
+					}
+				}
+			}
+		}
+			
+				//int c = countNameMatches(s);
+			//System.out.println("number of matches =" + c);
+			//if(c==1)
+			//	fillInDataUsingLastName(s);
+			//else if (c>1) {
+			/*
+				ArrayList<String> matchingNames = new ArrayList<String>();
+				for(Donor d: form.getChurchDB()) {
+					if(d.getLastName().length()>=s.length()) {
+						if( d.getLastName().substring(0, s.length()-1).compareToIgnoreCase(s)==0)  {
+							matchingNames.add(d.getLastName() + ", " +d.getFirstName());
+						}
+					}
+				JList list = new JList(matchingNames.toArray());
+			*/	
+				
+
 	}
 	
 	public void addDonationToOffering(Donation d) {
@@ -116,8 +246,8 @@ public class FormController implements ActionListener {
 	}
 	
 	private void resetForm() {
-		updateLastNameComboBox("");
-		form.getLastNameField().setSelectedIndex(0);
+		//updateLastNameComboBox("");
+		form.getLastNameField().setText("");
 		form.getFirstNameField().setText("");
 		form.getEnvelopeField().setText("");
 		form.getAddressField().setText("");
@@ -191,7 +321,7 @@ public class FormController implements ActionListener {
 	public Donation getFormData() {
 
 		Donor d = new Donor(
-				nullToEmptyString((String)form.getLastNameField().getSelectedItem()),
+				nullToEmptyString((String)form.getLastNameField().getText()),
 				nullToEmptyString(form.getFirstNameField().getText()),
 				nullToEmptyString(form.getEnvelopeField().getText()),
 				nullToEmptyString(form.getAddressField().getText()),
@@ -230,7 +360,7 @@ public class FormController implements ActionListener {
 		for(Donor d: form.getChurchDB()) {
 			if (d.getEnvelopeNumber().compareToIgnoreCase(s)==0) {
 				form.setFirstNameField(d.getFirstName());
-				form.getLastNameField().setSelectedItem(d.getLastName());
+				form.getLastNameField().setText(d.getLastName());
 				form.setAddressField(d.getAddress());
 				form.setCityField(d.getCity());
 				form.setStateField(d.getState());
@@ -251,6 +381,7 @@ public class FormController implements ActionListener {
 		return matches;
 	}
 	
+	/*
 	private int updateLastNameComboBox(String s) {
 		System.out.println("in updateLastNameComboBox()....");
 		int count = 0;
@@ -269,7 +400,8 @@ public class FormController implements ActionListener {
 		}
 	return count;
 }
-
+*/
+	
 	private void showAllEntries(){
 		
 		System.out.println("in the show all entries block...number of entries in offering is " + offering.size());
@@ -328,7 +460,7 @@ public class FormController implements ActionListener {
 		else
 			for(Donor d: form.getChurchDB()) {
 				if(form.getEnvelopeField().getText().compareTo(d.getEnvelopeNumber())==0) {
-					if(((String) form.getLastNameField().getSelectedItem()).compareTo(d.getLastName())!=0){
+					if(((String) form.getLastNameField().getText()).compareTo(d.getLastName())!=0){
 						form.alertMessage("Your envelope number does not match the church database name for that number");
 						return true;
 					}
@@ -406,98 +538,286 @@ public class FormController implements ActionListener {
     	
 		System.out.println("in the create envelope sheet method....");
     	
-	    // Or do it on one line.
+		// setup column widths
+	    envSheet.setColumnWidth(0, 3200);
+		
+	    // setup worksheet font
+	    HSSFFont font= wb.createFont();
+	    font.setFontHeightInPoints((short)10);
+	    font.setFontName("Arial");
+	    font.setColor(IndexedColors.BLACK.getIndex());
+	    font.setBold(true);
+	    font.setItalic(false);
+	    
+	    // setup background colors for sheet
+	    HSSFPalette palette = wb.getCustomPalette();
+	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
+	    short palIndex = myColor.getIndex();
+
+	    // setup the cell style for titles on the page
+	    CellStyle styleTopBar = wb.createCellStyle();
+	    styleTopBar.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		styleTopBar.setFillForegroundColor(palIndex);
+	    styleTopBar.setAlignment(HorizontalAlignment.CENTER);
+	    styleTopBar.setVerticalAlignment(VerticalAlignment.CENTER);
+	    styleTopBar.setBorderBottom(BorderStyle.THIN);
+	    styleTopBar.setFont(font);
+	    
+	    // setup the cell style for currency entries
+	    CellStyle styleData = wb.createCellStyle();
+	    styleData.setAlignment(HorizontalAlignment.RIGHT);
+	    styleData.setDataFormat(wb.createDataFormat().getFormat( BuiltinFormats.getBuiltinFormat( 6 )));
+	    
+	    //setup Styles for totals
+	    CellStyle styleRightBorder = wb.createCellStyle();
+	    styleRightBorder.setBorderRight(BorderStyle.THIN);
+	    
+	    CellStyle styleLeftBorder = wb.createCellStyle();
+	    styleLeftBorder.setBorderLeft(BorderStyle.THIN);
+	    
+	    CellStyle styleBottomLeftCorner = wb.createCellStyle();
+	    styleBottomLeftCorner.setBorderBottom(BorderStyle.THIN);
+	    styleBottomLeftCorner.setBorderLeft(BorderStyle.THIN);
+	    
+	    CellStyle styleBottomRightCorner = wb.createCellStyle();
+	    styleBottomRightCorner.setBorderBottom(BorderStyle.THIN);
+	    styleBottomRightCorner.setBorderRight(BorderStyle.THIN);
+	    
+	    CellStyle styleTopLeftCorner = wb.createCellStyle();
+	    styleTopLeftCorner.setBorderTop(BorderStyle.THIN);
+	    styleTopLeftCorner.setBorderLeft(BorderStyle.THIN);
+	    
+	    CellStyle styleTopRightCorner = wb.createCellStyle();
+	    styleTopRightCorner.setBorderTop(BorderStyle.THIN);
+	    styleTopRightCorner.setBorderRight(BorderStyle.THIN);
+	    
+	    
+	    // create the titles
 	    int r=0;
 	    Row row = envSheet.createRow((short)r);
+	    row.setHeightInPoints(20);
 	    
-	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope #"));
-	    row.createCell(1).setCellValue(createHelper.createRichTextString("Check"));
-	    row.createCell(2).setCellValue(createHelper.createRichTextString("Cash"));
-	    row.createCell(3).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    Cell cell = row.createCell(0);
+	    cell.setCellStyle(styleTopBar);
+	    cell.setCellValue(createHelper.createRichTextString("Envelope #"));
+
+	    cell = row.createCell(1);
+	    cell.setCellStyle(styleTopBar);
+	    cell.setCellValue(createHelper.createRichTextString("Check"));
 	    
-	    int check=0,
-	    cash=0,
-	    EFT=0;
+	    cell = row.createCell(2);
+	    cell.setCellStyle(styleTopBar);
+	    cell.setCellValue(createHelper.createRichTextString("Cash"));
+	    
+	    cell = row.createCell(3);
+	    cell.setCellStyle(styleTopBar);
+	    cell.setCellValue(createHelper.createRichTextString("EFT PP"));
 	    
 	    for(Donation d: offering) {
 	    		if(d.getDesignation().compareToIgnoreCase("Envelope")==0){
+	    			
 	    			r++;
 	    		    row = envSheet.createRow((short)r);
+	    		    row.setHeightInPoints(18);
+	    		    
 	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
 	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
-	    		    		row.createCell(1).setCellValue(d.getAmount());
-	    		    		check+=d.getAmount();
+	    		    		cell = row.createCell(1);
+	    		    		cell.setCellStyle(styleData);
+	    		    		cell.setCellValue(d.getAmount());
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
-    		    			row.createCell(2).setCellValue(d.getAmount());
-    		    			cash+=d.getAmount();
+    		    			cell = row.createCell(2);
+    		    			cell.setCellStyle(styleData);
+    		    			cell.setCellValue(d.getAmount());
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
-    		    			row.createCell(3).setCellValue(d.getAmount());
-    		    			EFT+=d.getAmount();
+    		    			cell = row.createCell(3);
+    		    			cell.setCellStyle(styleData);
+    		    			cell.setCellValue(d.getAmount());
 	    		    }
 	    		}		
 	    }
 	    
-	    if(envSheet.getRow((short)5)==null)
-    			envSheet.createRow((short)5).createCell(5).setCellValue(createHelper.createRichTextString("check"));
+	    if(envSheet.getRow((short)4)==null) {
+			row = envSheet.createRow((short)4);
+			row.setHeightInPoints(18);
+			cell = row.createCell(5);
+			cell.setCellStyle(styleTopLeftCorner);
+			cell.setCellValue(createHelper.createRichTextString("TOTALS"));
+			
+			cell = envSheet.getRow((short)4).createCell(6);
+			cell.setCellStyle(styleTopRightCorner);
+			cell.setCellValue(createHelper.createRichTextString(" "));
+	    }
+	    else {
+			cell = envSheet.getRow((short)4).createCell(5);
+			cell.setCellStyle(styleTopLeftCorner);
+			cell.setCellValue(createHelper.createRichTextString("TOTALS"));
+			
+			cell = envSheet.getRow((short)4).createCell(6);
+			cell.setCellStyle(styleTopRightCorner);
+			cell.setCellValue(createHelper.createRichTextString(" "));
+	    }
+	    
+	    if(envSheet.getRow((short)5)==null) {
+    			row = envSheet.createRow((short)5);
+	    		row.setHeightInPoints(18);
+	    		row.createCell(5).setCellValue(createHelper.createRichTextString("CHECK"));
+	    }	
 	    else
-    			envSheet.getRow((short)5).createCell(5).setCellValue(createHelper.createRichTextString("check"));
+    			envSheet.getRow((short)5).createCell(5).setCellValue(createHelper.createRichTextString("CHECK"));
     
-	    if(envSheet.getRow((short)6)==null)
-			envSheet.createRow((short)6).createCell(5).setCellValue(createHelper.createRichTextString("cash"));
+	    if(envSheet.getRow((short)6)==null) {
+			row=envSheet.createRow((short)6);
+			row.setHeightInPoints(18);
+			//styleTitles.setBorderBottom(BorderStyle.NONE);
+			//styleTitles.setBorderLeft(BorderStyle.THIN);
+			row.createCell(5).setCellValue(createHelper.createRichTextString("CASH"));
+	    }
 	    else
-			envSheet.getRow((short)6).createCell(5).setCellValue(createHelper.createRichTextString("cash"));
+			envSheet.getRow((short)6).createCell(5).setCellValue(createHelper.createRichTextString("CASH"));
     
-	    if(envSheet.getRow((short)7)==null)
-	    		envSheet.createRow((short)7).createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    if(envSheet.getRow((short)7)==null) {
+	    		row=envSheet.createRow((short)7);
+	    		row.setHeightInPoints(18);
+	    		row.createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
+	    }
 	    else
 	    		envSheet.getRow((short)7).createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
-    
-	    envSheet.getRow(5).createCell(6).setCellValue(check);
-	    envSheet.getRow(6).createCell(6).setCellValue(cash);
-	    envSheet.getRow(7).createCell(6).setCellValue(EFT);
-    	
+
+	    if(envSheet.getRow((short)8)==null) {
+    			row = envSheet.createRow((short)8);
+    			row.setHeightInPoints(20);
+    			row.createCell(5).setCellValue(createHelper.createRichTextString("ALL"));
+	    }
+	    else
+    			envSheet.getRow((short)8).createCell(5).setCellValue(createHelper.createRichTextString("ALL"));
+	    	    
+	    row = envSheet.getRow(5);
+		cell = row.createCell(6);
+		cell.setCellStyle(styleData);
+	    cell.setCellFormula("SUM(B:B)");
+	    
+	    row = envSheet.getRow(6);
+		cell = row.createCell(6);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(C:C)");
+		
+		row = envSheet.getRow(7);
+		cell = row.createCell(6);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(D:D)");
+		
+		row = envSheet.getRow(8);
+		cell = row.createCell(6);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(G6:G8)");    	
     }
  
     private void createPlateSheet(HSSFWorkbook wb, CreationHelper createHelper, Sheet plateSheet) {
     	
 		System.out.println("in the create plate sheet method....");
     	
-	    int check=0; 
-	    int cash=0;
-	    int EFT=0;
+		// set the column widths for the sheet
+		plateSheet.setColumnWidth(0, 5200);
+		plateSheet.setColumnWidth(1, 5200);
+		
+		// set up font for the sheet
+	    HSSFFont font= wb.createFont();
+	    font.setFontHeightInPoints((short)10);
+	    font.setFontName("Arial");
+	    font.setColor(IndexedColors.BLACK.getIndex());
+	    font.setBold(true);
+	    font.setItalic(false);
 	    
+	    // set up the color for the top row
+	    HSSFPalette palette = wb.getCustomPalette();
+	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
+	    short palIndex = myColor.getIndex();
+
+	    // setup the style / format of the cell
+	    CellStyle styleTitles = wb.createCellStyle();
+	    styleTitles.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		styleTitles.setFillForegroundColor(palIndex);
+	    styleTitles.setAlignment(HorizontalAlignment.CENTER);
+	    styleTitles.setVerticalAlignment(VerticalAlignment.CENTER);
+	    styleTitles.setBorderBottom(BorderStyle.THIN);
+	    styleTitles.setFont(font);
+	    
+	    // setup the cell style for currency entries
+	    CellStyle styleData = wb.createCellStyle();
+	    styleData.setAlignment(HorizontalAlignment.RIGHT);
+	    styleData.setDataFormat(wb.createDataFormat().getFormat( BuiltinFormats.getBuiltinFormat( 6 )));
+	    
+	    // create the titles
 	    int r=0;
 	    Row row = plateSheet.createRow((short)r);
-	    row.createCell(0).setCellValue(createHelper.createRichTextString("plate - First Name"));
-	    row.createCell(1).setCellValue(createHelper.createRichTextString("plate - Last Name"));
-	    row.createCell(2).setCellValue(createHelper.createRichTextString("Checks"));
-	    row.createCell(3).setCellValue(createHelper.createRichTextString("Cash"));
-	    row.createCell(4).setCellValue(createHelper.createRichTextString("EFT PP"));
-	    row.createCell(5).setCellValue(createHelper.createRichTextString("Address"));
-	    row.createCell(6).setCellValue(createHelper.createRichTextString("City"));
-	    row.createCell(7).setCellValue(createHelper.createRichTextString("State"));
-	    row.createCell(8).setCellValue(createHelper.createRichTextString("Zip"));
+	    row.setHeightInPoints(20);
+	    
+	    Cell cell = row.createCell(0);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("plate - First Name"));
+	    
+	    cell = row.createCell(1);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("plate - Last Name"));
+
+	    cell = row.createCell(2);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Checks"));
+
+	    cell = row.createCell(3);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Cash"));
+
+	    cell = row.createCell(4);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("EFT PP"));
+
+	    cell = row.createCell(5);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Address"));
+
+	    cell = row.createCell(6);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("City"));
+
+	    cell = row.createCell(7);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("State"));
+
+	    cell = row.createCell(8);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Zip"));
+	
+		System.out.println("in the create plate sheet method 2....");
 	    
 	    for(Donation d: offering) {
 	    		if(d.getDesignation().compareToIgnoreCase("Plate")==0) {
+	    			
 	    			r++;
 	    		    row = plateSheet.createRow((short)r);
+	    		    row.setHeightInPoints(18);
+
 	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getFirstName()));
 	    		    row.createCell(1).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
 	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
-	    		    		row.createCell(2).setCellValue(d.getAmount());
-	    		    		check+=d.getAmount();
+    		    			cell = row.createCell(2);
+    		    			cell.setCellStyle(styleData);
+    		    			cell.setCellValue(d.getAmount());
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
-    		    			row.createCell(3).setCellValue(d.getAmount());
-    		    			cash+=d.getAmount();
+    		    			cell = row.createCell(3);
+    		    			cell.setCellStyle(styleData);
+    		    			cell.setCellValue(d.getAmount());
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
-    		    			row.createCell(4).setCellValue(d.getAmount());
-    		    			EFT+=d.getAmount();
+    		    			cell = row.createCell(4);
+	    		    		cell.setCellStyle(styleData);
+	    		    		cell.setCellValue(d.getAmount());
 	    		    }
+	    		    
 	    		    row.createCell(5).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
 	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDonor().getCity()));
 	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDonor().getState()));
@@ -505,69 +825,196 @@ public class FormController implements ActionListener {
 	    		}		
 	    }
 	    
-	    if(plateSheet.getRow((short)5)==null)
-	    		plateSheet.createRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
-	    else
-	    		plateSheet.getRow((short)5).createCell(10).setCellValue(createHelper.createRichTextString("check"));
+		System.out.println("in the create plate sheet method 3....");
 	    
-	    if(plateSheet.getRow((short)6)==null)
-    			plateSheet.createRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
-	    else
-    			plateSheet.getRow((short)6).createCell(10).setCellValue(createHelper.createRichTextString("cash"));
+	    if(plateSheet.getRow((short)5)==null) {
+    			row = plateSheet.createRow((short)5);
+    			row.setHeightInPoints(18);
+    			cell = row.createCell(10);
+    			cell.setCellStyle(styleTitles);
+    			cell.setCellValue(createHelper.createRichTextString("check"));
+	    }
+	    else	{
+	    		row = plateSheet.getRow((short)5);
+	    		cell = row.createCell(10);
+	    		cell.setCellStyle(styleTitles);
+	    		cell.setCellValue(createHelper.createRichTextString("check"));
+	    }
+	    if(plateSheet.getRow((short)6)==null) {
+			row = plateSheet.createRow((short)6);
+			row.setHeightInPoints(18);
+			cell = row.createCell(10);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("cash"));
+	    }
+	    else	{
+	    		row = plateSheet.getRow((short)6);
+    			cell = row.createCell(10);
+    			cell.setCellStyle(styleTitles);
+    			cell.setCellValue(createHelper.createRichTextString("cash"));
+	    }
+	    if(plateSheet.getRow((short)7)==null) {
+			row = plateSheet.createRow((short)7);
+			row.setHeightInPoints(18);
+			cell = row.createCell(10);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("EFT PP"));
+	    }
+	    else	{
+	    		row = plateSheet.getRow((short)7);
+    			cell = row.createCell(10);
+    			cell.setCellStyle(styleTitles);
+    			cell.setCellValue(createHelper.createRichTextString("EFT PP"));
+	    }
+	    if(plateSheet.getRow((short)8)==null) {
+	 		row = plateSheet.createRow((short)8);
+	 		row.setHeightInPoints(18);
+	 		cell = row.createCell(10);
+	 		cell.setCellStyle(styleTitles);
+	 		cell.setCellValue(createHelper.createRichTextString("Total"));
+	 	}
+	    else	{
+	 	    	row = plateSheet.getRow((short)8);
+	     	cell = row.createCell(10);
+	     	cell.setCellStyle(styleTitles);
+	     	cell.setCellValue(createHelper.createRichTextString("Total"));
+	    }
 	    
-	    if(plateSheet.getRow((short)7)==null)
-			plateSheet.createRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
-	    else
-			plateSheet.getRow((short)7).createCell(10).setCellValue(createHelper.createRichTextString("EFT PP"));
+		System.out.println("in the create plate sheet method 4....");
 	    
-	    plateSheet.getRow(5).createCell(11).setCellValue(check);
-	    plateSheet.getRow(6).createCell(11).setCellValue(cash);
-	    plateSheet.getRow(7).createCell(11).setCellValue(EFT);
+	    // put in formula to compute the sum of all the CHECKS
+	    row = plateSheet.getRow(5);
+		cell = row.createCell(11);
+		cell.setCellStyle(styleData);
+	    cell.setCellFormula("SUM(C:C)");
+	    
+	    // put in formula to compute the sum of all the CASH
+	    row = plateSheet.getRow(6);
+		cell = row.createCell(11);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(D:D)");
+		
+	    // put in formula to compute the sum of all the EFTS
+		row = plateSheet.getRow(7);
+		cell = row.createCell(11);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(E:E)");
+		
+		// put in formula to compute the sum of all categories
+		row = plateSheet.getRow(8);
+		cell = row.createCell(11);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(L6:L8)");  
     }
   
     private void createDfSheet(HSSFWorkbook wb, CreationHelper createHelper, Sheet dfSheet) {
     	
     		System.out.println("in the create designated fund sheet method....");
+
+    		// setup column widths
+    	    dfSheet.setColumnWidth(0, 3200);
     		
-	    int check=0; 
-	    int cash=0;
-	    int EFT=0;
-    	
-	    int r=0;
-	    Row row = dfSheet.createRow((short)r);
-	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope"));
-	    row.createCell(1).setCellValue(createHelper.createRichTextString("First Name"));
-	    row.createCell(2).setCellValue(createHelper.createRichTextString("Last Name"));
-	    row.createCell(3).setCellValue(createHelper.createRichTextString("Checks"));
-	    row.createCell(4).setCellValue(createHelper.createRichTextString("Cash"));
-	    row.createCell(5).setCellValue(createHelper.createRichTextString("EFT PP"));
-	    row.createCell(6).setCellValue(createHelper.createRichTextString("Fund"));
-	    row.createCell(7).setCellValue(createHelper.createRichTextString("Address"));
-	    row.createCell(8).setCellValue(createHelper.createRichTextString("City"));
-	    row.createCell(9).setCellValue(createHelper.createRichTextString("State"));
-	    row.createCell(10).setCellValue(createHelper.createRichTextString("Zip"));
-	    
-	    //Collections.sort(offering);
+    	    // setup worksheet font
+    	    HSSFFont font= wb.createFont();
+    	    font.setFontHeightInPoints((short)10);
+    	    font.setFontName("Arial");
+    	    font.setColor(IndexedColors.BLACK.getIndex());
+    	    font.setBold(true);
+    	    font.setItalic(false);
+
+    	    // setup background colors for sheet
+    	    HSSFPalette palette = wb.getCustomPalette();
+    	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
+    	    short palIndex = myColor.getIndex();
+
+    	    // setup the cell style for titles on the page
+    	    CellStyle styleTitles = wb.createCellStyle();
+    	    styleTitles.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    		styleTitles.setFillForegroundColor(palIndex);
+    	    styleTitles.setAlignment(HorizontalAlignment.CENTER);
+    	    styleTitles.setVerticalAlignment(VerticalAlignment.CENTER);
+    	    styleTitles.setBorderBottom(BorderStyle.THIN);
+    	    styleTitles.setFont(font);
+    	    
+    	    // setup the cell style for currency entries
+    	    CellStyle styleData = wb.createCellStyle();
+    	    styleData.setAlignment(HorizontalAlignment.RIGHT);
+    	    styleData.setDataFormat(wb.createDataFormat().getFormat( BuiltinFormats.getBuiltinFormat( 6 )));
+    	    
+    	    // create the column titles
+    	    int r=0;
+    	    Row row = dfSheet.createRow((short)r);
+    	    row.setHeightInPoints(20);
+    	    
+    	    Cell cell = row.createCell(0);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("Envelope"));
+
+    	    cell = row.createCell(1);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("First Name"));
+    	    
+    	    cell = row.createCell(2);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("Last Name"));
+    	    
+    	    cell = row.createCell(3);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("Checks"));
+    	    
+    	    cell = row.createCell(4);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("Cash"));
+
+    	    cell = row.createCell(5);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("EFT PP"));
+    	    
+    	    cell = row.createCell(6);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("Fund"));
+    	    
+    	    cell = row.createCell(7);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("Address"));
+    	    
+      	cell = row.createCell(8);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("City"));
+
+    	    cell = row.createCell(9);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("State"));
+    	    
+    	    cell = row.createCell(10);
+    	    cell.setCellStyle(styleTitles);
+    	    cell.setCellValue(createHelper.createRichTextString("Zip"));
 	    
 	    for(Donation d: offering) {
 	    		System.out.println("the category is " + d.getCategory());
 	    		if(d.getDesignation().compareToIgnoreCase("Designated")==0) {
+	    			
 	    			r++;
 	    		    row = dfSheet.createRow((short)r);
+	    		    row.setHeightInPoints(18);
+
 	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
 	    		    row.createCell(1).setCellValue(createHelper.createRichTextString(d.getDonor().getFirstName()));
 	    		    row.createCell(2).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
 	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
-	    		    		row.createCell(3).setCellValue(d.getAmount());
-	    		    		check+=d.getAmount();
+    		    			cell = row.createCell(3);
+    		    			cell.setCellStyle(styleData);
+    		    			cell.setCellValue(d.getAmount());
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
-    		    			row.createCell(4).setCellValue(d.getAmount());
-    		    			cash+=d.getAmount();
+    		    			cell = row.createCell(4);
+    		    			cell.setCellStyle(styleData);
+    		    			cell.setCellValue(d.getAmount());
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
-    		    			row.createCell(5).setCellValue(d.getAmount());
-    		    			EFT+=d.getAmount();
+    		    			cell = row.createCell(5);
+    		    			cell.setCellStyle(styleData);
+    		    			cell.setCellValue(d.getAmount());
 	    		    }
 	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDescription()));
 	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
@@ -579,33 +1026,169 @@ public class FormController implements ActionListener {
 	    
 	    int col=12;
 	    
-	    if(dfSheet.getRow((short)5)==null)
-    			dfSheet.createRow((short)5).createCell(col).setCellValue(createHelper.createRichTextString("check"));
-	    else
-    			dfSheet.getRow((short)5).createCell(col).setCellValue(createHelper.createRichTextString("check"));
-    
-	    if(dfSheet.getRow((short)6)==null)
-			dfSheet.createRow((short)6).createCell(col).setCellValue(createHelper.createRichTextString("cash"));
-	    else
-			dfSheet.getRow((short)6).createCell(col).setCellValue(createHelper.createRichTextString("cash"));
-    
-	    if(dfSheet.getRow((short)7)==null)
-	    		dfSheet.createRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
-	    else
-	    		dfSheet.getRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
-    
-	    dfSheet.getRow(5).createCell(col+1).setCellValue(check);
-	    dfSheet.getRow(6).createCell(col+1).setCellValue(cash);
-	    dfSheet.getRow(7).createCell(col+1).setCellValue(EFT);
+	    if(dfSheet.getRow((short)5)==null) {
+	    		row = dfSheet.createRow((short)5);
+	    		row.setHeightInPoints(18);
+	    		cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("check"));
+	    }
+	    else {
+    			row = dfSheet.getRow((short)5);
+    			cell = row.createCell(col);
+    			cell.setCellStyle(styleTitles);
+    			cell.setCellValue(createHelper.createRichTextString("check"));
+	    }
+	    if(dfSheet.getRow((short)6)==null) {
+    			row = dfSheet.createRow((short)6);
+    			row.setHeightInPoints(18);
+    			cell = row.createCell(col);
+    			cell.setCellStyle(styleTitles);
+    			cell.setCellValue(createHelper.createRichTextString("cash"));
+	    }
+	    else {
+    			row = dfSheet.getRow((short)6);
+    			cell = row.createCell(col);
+    			cell.setCellStyle(styleTitles);
+    			cell.setCellValue(createHelper.createRichTextString("cash"));
+	    }
+	    if(dfSheet.getRow((short)7)==null) {
+			row = dfSheet.createRow((short)7);
+			row.setHeightInPoints(18);
+			cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("EFT PP"));
+	    }
+	    else {
+			row = dfSheet.getRow((short)7);
+			cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("EFT PP"));
+	    }
+	    if(dfSheet.getRow((short)8)==null) {
+			row = dfSheet.createRow((short)8);
+			row.setHeightInPoints(18);
+			cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("Total"));
+	    }
+	    else {
+			row = dfSheet.getRow((short)8);
+			cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("Total"));
+	    }
+
+	    row = dfSheet.getRow(5);
+		cell = row.createCell(col+1);
+		cell.setCellStyle(styleData);
+	    cell.setCellFormula("SUM(D:D)");
+	    
+	    row = dfSheet.getRow(6);
+		cell = row.createCell(col+1);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(E:E)");
+		
+		row = dfSheet.getRow(7);
+		cell = row.createCell(col+1);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(F:F)");
+		
+		row = dfSheet.getRow(8);
+		cell = row.createCell(col+1);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(F6:F8)");    	
 	    
     }
     
     private void createMiscSheet(HSSFWorkbook wb, CreationHelper createHelper, Sheet miscSheet) {
     	
+    		System.out.println("in the create misc. fund sheet method....");
+
+		// setup column widths
+	    miscSheet.setColumnWidth(0, 3200);
+		
+	    // setup worksheet font
+	    HSSFFont font= wb.createFont();
+	    font.setFontHeightInPoints((short)10);
+	    font.setFontName("Arial");
+	    font.setColor(IndexedColors.BLACK.getIndex());
+	    font.setBold(true);
+	    font.setItalic(false);
+	    
+	    // setup background colors for sheet
+	    HSSFPalette palette = wb.getCustomPalette();
+	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
+	    short palIndex = myColor.getIndex();
+
+	    // setup the cell style for titles on the page
+	    CellStyle styleTitles = wb.createCellStyle();
+	    styleTitles.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		styleTitles.setFillForegroundColor(palIndex);
+	    styleTitles.setAlignment(HorizontalAlignment.CENTER);
+	    styleTitles.setVerticalAlignment(VerticalAlignment.CENTER);
+	    styleTitles.setBorderBottom(BorderStyle.THIN);
+	    styleTitles.setFont(font);
+	    
+	    // setup the cell style for currency entries
+	    CellStyle styleData = wb.createCellStyle();
+	    styleData.setAlignment(HorizontalAlignment.RIGHT);
+	    styleData.setDataFormat(wb.createDataFormat().getFormat( BuiltinFormats.getBuiltinFormat( 6 )));
+	    
+	 // create the column titles
+	    int r=0;
+	    Row row = miscSheet.createRow((short)r);
+	    row.setHeightInPoints(20);
+	    
+	    Cell cell = row.createCell(0);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Envelope"));
+
+	    cell = row.createCell(1);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("First Name"));
+	    
+	    cell = row.createCell(2);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Last Name"));
+	    
+	    cell = row.createCell(3);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Checks"));
+	    
+	    cell = row.createCell(4);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Cash"));
+
+	    cell = row.createCell(5);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("EFT PP"));
+	    
+	    cell = row.createCell(6);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Fund"));
+	    
+	    cell = row.createCell(7);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Address"));
+	    
+  	cell = row.createCell(8);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("City"));
+
+	    cell = row.createCell(9);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("State"));
+	    
+	    cell = row.createCell(10);
+	    cell.setCellStyle(styleTitles);
+	    cell.setCellValue(createHelper.createRichTextString("Zip"));
+    	
 	    int check=0; 
 	    int cash=0;
 	    int EFT=0;
     	
+	    /*
 	    int r=0;
 	    Row row = miscSheet.createRow((short)r);
 	    row.createCell(0).setCellValue(createHelper.createRichTextString("Envelope"));
@@ -619,9 +1202,10 @@ public class FormController implements ActionListener {
 	    row.createCell(8).setCellValue(createHelper.createRichTextString("City"));
 	    row.createCell(9).setCellValue(createHelper.createRichTextString("State"));
 	    row.createCell(10).setCellValue(createHelper.createRichTextString("Zip"));
+	    */
 	    
 	    for(Donation d: offering) {
-	    		if(d.getDesignation().compareToIgnoreCase("misc.")!=0) {
+	    		if(d.getDesignation().compareToIgnoreCase("misc.")==0) {
 	    			r++;
 	    		    row = miscSheet.createRow((short)r);
 	    		    row.createCell(0).setCellValue(createHelper.createRichTextString(d.getDonor().getEnvelopeNumber()));
@@ -649,6 +1233,7 @@ public class FormController implements ActionListener {
 	    
 	    int col=12;
 	    
+	    /*
 	    if(miscSheet.getRow((short)5)==null)
 			miscSheet.createRow((short)5).createCell(col).setCellValue(createHelper.createRichTextString("check"));
 	    else
@@ -663,10 +1248,84 @@ public class FormController implements ActionListener {
     			miscSheet.createRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
 	    else
     			miscSheet.getRow((short)7).createCell(col).setCellValue(createHelper.createRichTextString("EFT PP"));
+*/
+	    //miscSheet.getRow(5).createCell(col+1).setCellValue(check);
+	    //miscSheet.getRow(6).createCell(col+1).setCellValue(cash);
+	    //miscSheet.getRow(7).createCell(col+1).setCellValue(EFT);
+	    
+	    
+	    if(miscSheet.getRow((short)5)==null) {
+	    		row = miscSheet.createRow((short)5);
+	    		row.setHeightInPoints(18);
+	    		cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("check"));
+	    }
+	    else {
+    			row = miscSheet.getRow((short)5);
+    			cell = row.createCell(col);
+    			cell.setCellStyle(styleTitles);
+    			cell.setCellValue(createHelper.createRichTextString("check"));
+	    }
+	    if(miscSheet.getRow((short)6)==null) {
+    			row = miscSheet.createRow((short)6);
+    			row.setHeightInPoints(18);
+    			cell = row.createCell(col);
+    			cell.setCellStyle(styleTitles);
+    			cell.setCellValue(createHelper.createRichTextString("cash"));
+	    }
+	    else {
+    			row = miscSheet.getRow((short)6);
+    			cell = row.createCell(col);
+    			cell.setCellStyle(styleTitles);
+    			cell.setCellValue(createHelper.createRichTextString("cash"));
+	    }
+	    if(miscSheet.getRow((short)7)==null) {
+			row = miscSheet.createRow((short)7);
+			row.setHeightInPoints(18);
+			cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("EFT PP"));
+	    }
+	    else {
+			row = miscSheet.getRow((short)7);
+			cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("EFT PP"));
+	    }
+	    if(miscSheet.getRow((short)8)==null) {
+			row = miscSheet.createRow((short)8);
+			row.setHeightInPoints(18);
+			cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("Total"));
+	    }
+	    else {
+			row = miscSheet.getRow((short)8);
+			cell = row.createCell(col);
+			cell.setCellStyle(styleTitles);
+			cell.setCellValue(createHelper.createRichTextString("Total"));
+	    }
 
-	    miscSheet.getRow(5).createCell(col+1).setCellValue(check);
-	    miscSheet.getRow(6).createCell(col+1).setCellValue(cash);
-	    miscSheet.getRow(7).createCell(col+1).setCellValue(EFT);
+	    row = miscSheet.getRow(5);
+		cell = row.createCell(col+1);
+		cell.setCellStyle(styleData);
+	    cell.setCellFormula("SUM(D:D)");
+	    
+	    row = miscSheet.getRow(6);
+		cell = row.createCell(col+1);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(E:E)");
+		
+		row = miscSheet.getRow(7);
+		cell = row.createCell(col+1);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(F:F)");
+		
+		row = miscSheet.getRow(8);
+		cell = row.createCell(col+1);
+		cell.setCellStyle(styleData);
+		cell.setCellFormula("SUM(N6:N8)");   
 	    
     }
   

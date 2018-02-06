@@ -6,19 +6,22 @@ import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
-
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import org.eclipse.wb.swing.FocusTraversalOnArray;
+import java.awt.Component;
 
 public class DataEntryForm extends JFrame {
 
 	private JPanel contentPane;
-	private JComboBox<String> lastNameField;
+	private JTextField lastNameField;
 	private JTextField firstNameField;
 	private JTextField envelopeField;
 	private JTextField addressField;
@@ -31,6 +34,11 @@ public class DataEntryForm extends JFrame {
 	private JComboBox<String> designationField;
 	private JLabel nameInDBLabel;
 	private JButton addNameToDBButton;
+	
+	private FormController checkLastNameBoxController; 
+	private FormController actionController;
+	
+	private ArrayList<Donor> churchDB;
 	
 	public JButton getAddNameToDBButton() {
 		return addNameToDBButton;
@@ -47,11 +55,6 @@ public class DataEntryForm extends JFrame {
 	public void setNameInDBLabel(String s) {
 		this.nameInDBLabel.setText(s);
 	}
-
-	private FormController checkLastNameBoxController; 
-	private FormController envelopeFieldController;
-	
-	private ArrayList<Donor> churchDB;
 	
 	/**
 	 * Create the frame.  The data entry form constructor.
@@ -61,104 +64,103 @@ public class DataEntryForm extends JFrame {
 		loadChurchDB();
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 350);
+		setBounds(100, 100, 620, 350);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-// Labels setup -------------------------------------------------------		
+// Labels setup -------------------------------------------------------
+		int xLabel = 30;
+		int labelWidth = 110;
+		
 		JLabel lastNameLabel = new JLabel("Last Name");
 		lastNameLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		lastNameLabel.setBounds(44, 6, 89, 16);
+		lastNameLabel.setBounds(xLabel, 6, labelWidth, 16);
 		contentPane.add(lastNameLabel);
 		
 		JLabel firstNameLabel = new JLabel("First Name");
 		firstNameLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		firstNameLabel.setBounds(44, 34, 89, 16);
+		firstNameLabel.setBounds(xLabel, 34, labelWidth, 16);
 		contentPane.add(firstNameLabel);
 		
 		JLabel envelopeLabel = new JLabel("Envelope Number");
 		envelopeLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		envelopeLabel.setBounds(16, 62, 117, 16);
+		envelopeLabel.setBounds(xLabel, 62, labelWidth, 16);
 		contentPane.add(envelopeLabel);
 		
 		JLabel amountLabel = new JLabel("Amount");
 		amountLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		amountLabel.setBounds(72, 290, 61, 16);
+		amountLabel.setBounds(xLabel, 290, labelWidth, 16);
 		contentPane.add(amountLabel);
 		
 		JLabel addressLabel = new JLabel("Address");
 		addressLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		addressLabel.setBounds(72, 90, 61, 16);
+		addressLabel.setBounds(xLabel, 90, labelWidth, 16);
 		contentPane.add(addressLabel);
 		
 		JLabel cityLabel = new JLabel("City");
 		cityLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		cityLabel.setBounds(72, 118, 61, 16);
+		cityLabel.setBounds(xLabel, 118, labelWidth, 16);
 		contentPane.add(cityLabel);
 		
 		JLabel stateLabel = new JLabel("State");
 		stateLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		stateLabel.setBounds(72, 146, 61, 16);
+		stateLabel.setBounds(xLabel, 146, labelWidth, 16);
 		contentPane.add(stateLabel);
 		
 		JLabel zipLabel = new JLabel("Zip");
 		zipLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		zipLabel.setBounds(72, 174, 61, 16);
+		zipLabel.setBounds(xLabel, 174, labelWidth, 16);
 		contentPane.add(zipLabel);
 		
 		JLabel categoryLabel = new JLabel("Category");
 		categoryLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		categoryLabel.setBounds(72, 202, 61, 16);
+		categoryLabel.setBounds(xLabel, 202, labelWidth, 16);
 		contentPane.add(categoryLabel);
 		
 		JLabel designationLabel = new JLabel("Designation");
 		designationLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		designationLabel.setBounds(44, 230, 89, 16);
+		designationLabel.setBounds(xLabel, 230, labelWidth, 16);
 		contentPane.add(designationLabel);
 		
 		JLabel descriptionLabel = new JLabel("Description");
 		descriptionLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		descriptionLabel.setBounds(44, 258, 89, 16);
+		descriptionLabel.setBounds(xLabel, 258, labelWidth, 16);
 		contentPane.add(descriptionLabel);
 		
-		nameInDBLabel = new JLabel("");
-		nameInDBLabel.setBounds(297, 6, 134, 16);
-		contentPane.add(nameInDBLabel);
+// text / combobox setup ------------------------------------------------------	
+		int width = 75;
+		int xLeft = 155;
+		int xRight = xLeft + width;
 		
-// text / combobox setup ------------------------------------------------------		
-		checkLastNameBoxController = new FormController(this);
-		lastNameField = new JComboBox<String>();
-		lastNameField.setEditable(true);
-		lastNameField.setActionCommand("lastname-event-on");
-		lastNameField.setBounds(155, 1, 130, 26);
-		for(Donor d:churchDB) {
-			lastNameField.addItem(d.getLastName());
-		}
-		lastNameField.addActionListener(checkLastNameBoxController);
+		actionController = new FormController(this);
+		lastNameField = new JTextField();
+		lastNameField.setBounds(xLeft, 1, xRight, 26);
+		lastNameField.setActionCommand("lastname-event");
+		lastNameField.addActionListener(actionController);
 		contentPane.add(lastNameField);
+		lastNameField.setColumns(10);
 		
 		firstNameField = new JTextField();
-		firstNameField.setBounds(155, 29, 130, 26);
+		firstNameField.setBounds(xLeft, 29, xRight, 26);
 		contentPane.add(firstNameField);
 		firstNameField.setColumns(10);
 		
-		envelopeFieldController = new FormController(this);
 		envelopeField = new JTextField();
-		envelopeField.setBounds(155, 57, 130, 26);
+		envelopeField.setBounds(xLeft, 57, xRight, 26);
 		envelopeField.setActionCommand("envelope-event");
-		envelopeField.addActionListener(envelopeFieldController);
+		envelopeField.addActionListener(actionController);
 		contentPane.add(envelopeField);
 		envelopeField.setColumns(10);
 		
 		addressField = new JTextField();
-		addressField.setBounds(155, 85, 130, 26);
+		addressField.setBounds(xLeft, 85, xRight, 26);
 		contentPane.add(addressField);
 		addressField.setColumns(10);
 		
 		cityField = new JTextField();
-		cityField.setBounds(155, 113, 130, 26);
+		cityField.setBounds(xLeft, 113, xRight, 26);
 		contentPane.add(cityField);
 		cityField.setColumns(10);
 		
@@ -167,20 +169,20 @@ public class DataEntryForm extends JFrame {
 				"OR","PA","PR","PW","RI","SC","SD","TN","TX","UT","VA","VI","VT","WA","WI","WV","WY"};
 		stateField = new JComboBox<String>();
 		stateField.setEditable(true);
-		stateField.setBounds(155, 141, 130, 26);
+		stateField.setBounds(xLeft, 141, xRight, 26);
 		for(String s:states) {
 			stateField.addItem(s);
 		}
 		contentPane.add(stateField);
 		
 		zipField = new JTextField();
-		zipField.setBounds(155, 169, 130, 26);
+		zipField.setBounds(xLeft, 169, xRight, 26);
 		contentPane.add(zipField);
 		zipField.setColumns(10);
 		
 		String[] categories = new String[] {"","Cash","Check","EFT"};
 		categoryField = new JComboBox<String>();
-		categoryField.setBounds(155, 197, 130, 26);
+		categoryField.setBounds(xLeft, 197, xRight, 26);
 		for(String s: categories) {
 			categoryField.addItem(s);
 		}
@@ -188,28 +190,35 @@ public class DataEntryForm extends JFrame {
 		
 		String[] designations = new String[] {"","Plate","Envelope","Misc.","Designated"};
 		designationField = new JComboBox<String>();
-		designationField.setBounds(155, 225, 130, 26);
+		designationField.setBounds(xLeft, 225, xRight, 26);
 		for(String s: designations) {
 			designationField.addItem(s);
 		}
 		contentPane.add(designationField);
-
 		
 		descriptionField = new JTextField();
-		descriptionField.setBounds(155, 253, 130, 26);
+		descriptionField.setBounds(xLeft, 253, xRight, 26);
 		contentPane.add(descriptionField);
 		descriptionField.setColumns(10);
 		
 		amountField = new JTextField();
-		amountField.setBounds(155, 285, 130, 26);
+		amountField.setBounds(xLeft, 285, xRight, 26);
 		contentPane.add(amountField);
 		amountField.setColumns(10);
 		
-// buttons setup --------------------------------------------------------------------		
+		setFocusTraversalPolicy(new FocusTraversalOnArray(
+                new Component[] { 
+                	lastNameField, firstNameField, envelopeField, addressField, cityField, stateField, zipField , 
+                	categoryField, designationField, descriptionField, amountField }));
+		
+// buttons setup --------------------------------------------------------------------	
+		int xButton = 400;
+		int widthButton = 200;
+		
 		FormController enterButtonDataController = new FormController(this);
 		JButton enterDataButton = new JButton();
 		enterDataButton.setText("Enter Data");
-		enterDataButton.setBounds(297, 141, 134, 29);
+		enterDataButton.setBounds(xButton, 141, widthButton, 29);
 		enterDataButton.setActionCommand("enter-data");
 		enterDataButton.addActionListener(enterButtonDataController);
 		contentPane.add(enterDataButton);
@@ -217,27 +226,39 @@ public class DataEntryForm extends JFrame {
 		FormController showButtonDataController = new FormController(this);
 		JButton showDataButton = new JButton();
 		showDataButton.setText("Show All Entries");
-		showDataButton.setBounds(297, 169, 134, 29);
+		showDataButton.setBounds(xButton, 169, widthButton, 29);
 		showDataButton.setActionCommand("show-data");
 		showDataButton.addActionListener(showButtonDataController);
 		contentPane.add(showDataButton);
 		
 		FormController exportToExcelController = new FormController(this);
 		JButton exportToExcelButton = new JButton("Create Report");
-		exportToExcelButton.setBounds(297, 197, 134, 29);
+		exportToExcelButton.setBounds(xButton, 197, widthButton, 29);
 		exportToExcelButton.setActionCommand("excel-report");
 		exportToExcelButton.addActionListener(exportToExcelController);
 		contentPane.add(exportToExcelButton);
 		
+		nameInDBLabel = new JLabel("");
+		nameInDBLabel.setBounds(xButton + 5 , 6, widthButton - 10, 16);
+		nameInDBLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		contentPane.add(nameInDBLabel);
+		
 		FormController addNameToDBController = new FormController(this);
 		addNameToDBButton = new JButton("Add Name to DataBase");
-		addNameToDBButton.setBounds(307, 29, 117, 29);
+		addNameToDBButton.setBounds(xButton, 29, widthButton, 29);
 		addNameToDBButton.setVisible(false);
 		addNameToDBButton.setEnabled(false);
 		addNameToDBButton.setActionCommand("add-name");
 		addNameToDBButton.addActionListener(addNameToDBController);
 		contentPane.add(addNameToDBButton);
-	
+		
+		contentPane.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{lastNameLabel, 
+				firstNameLabel, envelopeLabel, amountLabel, addressLabel, cityLabel, stateLabel, 
+				zipLabel, categoryLabel, designationLabel, descriptionLabel, nameInDBLabel, 
+				lastNameField, firstNameField, envelopeField, addressField, cityField, 
+				stateField, zipField, categoryField, designationField, descriptionField, 
+				amountField, enterDataButton, showDataButton, exportToExcelButton, addNameToDBButton}));
+		
 		setVisible(true);
 	}
 	
@@ -253,11 +274,11 @@ public class DataEntryForm extends JFrame {
 		return churchDB;
 	}
 
-	public JComboBox getLastNameField() {
+	public JTextField getLastNameField() {
 		return lastNameField;
 	}
 
-	public void setLastNameField(JComboBox lastNameField) {
+	public void setLastNameField(JTextField lastNameField) {
 		this.lastNameField = lastNameField;
 	}
 
