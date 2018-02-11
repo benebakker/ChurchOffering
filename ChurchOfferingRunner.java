@@ -13,7 +13,6 @@ public class ChurchOfferingRunner {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					System.out.println("starting the main() in the Data Entry Form Controller...");
 					createAndShowGUI();
 				} catch (Exception e) {
 					e.printStackTrace();

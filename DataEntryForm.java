@@ -1,26 +1,64 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import org.eclipse.wb.swing.FocusTraversalOnArray;
+
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+
+//import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.usermodel.*;
+//import org.apache.poi.hssf.util.HSSFColor;
+//import org.apache.poi.ss.usermodel.Cell;
+//import org.apache.poi.ss.usermodel.CellStyle;
+//import org.apache.poi.ss.usermodel.CreationHelper;
+//import org.apache.poi.ss.usermodel.Row;
+//import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.util.*;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;   
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 
 public class DataEntryForm extends JFrame {
 
 	private JPanel contentPane;
+
+	private JLabel lastNameLabel;
+	private JLabel firstNameLabel;
+	private JLabel envelopeLabel;
+	private JLabel amountLabel;
+	private JLabel addressLabel;
+	private JLabel cityLabel;
+	private JLabel stateLabel;
+	private JLabel zipLabel;
+	private JLabel categoryLabel;
+	private JLabel designationLabel;
+	private JLabel descriptionLabel;
+
 	private JTextField lastNameField;
 	private JTextField firstNameField;
 	private JTextField envelopeField;
@@ -28,247 +66,193 @@ public class DataEntryForm extends JFrame {
 	private JTextField cityField;
 	private JComboBox<String> stateField;
 	private JComboBox<String> categoryField;
-	private JTextField descriptionField;
+	private JComboBox<String> descriptionField;
 	private JTextField amountField;
 	private JTextField zipField;
 	private JComboBox<String> designationField;
 	private JLabel nameInDBLabel;
+
 	private JButton addNameToDBButton;
-	
+	private JButton enterDataButton;
+	private JButton showDataButton;
+
 	private FormController checkLastNameBoxController; 
-	private FormController actionController;
-	
+	public FormController actionController;
+
 	private ArrayList<Donor> churchDB;
-	
-	public JButton getAddNameToDBButton() {
-		return addNameToDBButton;
-	}
 
-	public void setAddNameToDBButton(JButton addNameToDBButton) {
-		this.addNameToDBButton = addNameToDBButton;
-	}
-
-	public JLabel getNameInDBLabel() {
-		return nameInDBLabel;
-	}
-
-	public void setNameInDBLabel(String s) {
-		this.nameInDBLabel.setText(s);
-	}
-	
-	/**
-	 * Create the frame.  The data entry form constructor.
-	 */
 	public DataEntryForm() {
+
+		int xLeft = 100, width = 650;
+		int yTop = 100, height = 500;
 		
 		loadChurchDB();
-		
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 620, 350);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
-		contentPane.setLayout(null);
-		
-// Labels setup -------------------------------------------------------
-		int xLabel = 30;
-		int labelWidth = 110;
-		
-		JLabel lastNameLabel = new JLabel("Last Name");
-		lastNameLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		lastNameLabel.setBounds(xLabel, 6, labelWidth, 16);
-		contentPane.add(lastNameLabel);
-		
-		JLabel firstNameLabel = new JLabel("First Name");
-		firstNameLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		firstNameLabel.setBounds(xLabel, 34, labelWidth, 16);
-		contentPane.add(firstNameLabel);
-		
-		JLabel envelopeLabel = new JLabel("Envelope Number");
-		envelopeLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		envelopeLabel.setBounds(xLabel, 62, labelWidth, 16);
-		contentPane.add(envelopeLabel);
-		
-		JLabel amountLabel = new JLabel("Amount");
-		amountLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		amountLabel.setBounds(xLabel, 290, labelWidth, 16);
-		contentPane.add(amountLabel);
-		
-		JLabel addressLabel = new JLabel("Address");
-		addressLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		addressLabel.setBounds(xLabel, 90, labelWidth, 16);
-		contentPane.add(addressLabel);
-		
-		JLabel cityLabel = new JLabel("City");
-		cityLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		cityLabel.setBounds(xLabel, 118, labelWidth, 16);
-		contentPane.add(cityLabel);
-		
-		JLabel stateLabel = new JLabel("State");
-		stateLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		stateLabel.setBounds(xLabel, 146, labelWidth, 16);
-		contentPane.add(stateLabel);
-		
-		JLabel zipLabel = new JLabel("Zip");
-		zipLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		zipLabel.setBounds(xLabel, 174, labelWidth, 16);
-		contentPane.add(zipLabel);
-		
-		JLabel categoryLabel = new JLabel("Category");
-		categoryLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		categoryLabel.setBounds(xLabel, 202, labelWidth, 16);
-		contentPane.add(categoryLabel);
-		
-		JLabel designationLabel = new JLabel("Designation");
-		designationLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		designationLabel.setBounds(xLabel, 230, labelWidth, 16);
-		contentPane.add(designationLabel);
-		
-		JLabel descriptionLabel = new JLabel("Description");
-		descriptionLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-		descriptionLabel.setBounds(xLabel, 258, labelWidth, 16);
-		contentPane.add(descriptionLabel);
-		
-// text / combobox setup ------------------------------------------------------	
-		int width = 75;
-		int xLeft = 155;
-		int xRight = xLeft + width;
-		
+		setupMainPanel(xLeft, width, yTop, height);
+		addChurchImage();
+		setupLabels(xLeft, width, yTop, height);
+		setupEntryFields(xLeft, width, yTop, height);
+		setupButtons();
+
 		actionController = new FormController(this);
-		lastNameField = new JTextField();
-		lastNameField.setBounds(xLeft, 1, xRight, 26);
-		lastNameField.setActionCommand("lastname-event");
-		lastNameField.addActionListener(actionController);
-		contentPane.add(lastNameField);
-		lastNameField.setColumns(10);
-		
-		firstNameField = new JTextField();
-		firstNameField.setBounds(xLeft, 29, xRight, 26);
-		contentPane.add(firstNameField);
-		firstNameField.setColumns(10);
-		
-		envelopeField = new JTextField();
-		envelopeField.setBounds(xLeft, 57, xRight, 26);
-		envelopeField.setActionCommand("envelope-event");
-		envelopeField.addActionListener(actionController);
-		contentPane.add(envelopeField);
-		envelopeField.setColumns(10);
-		
-		addressField = new JTextField();
-		addressField.setBounds(xLeft, 85, xRight, 26);
-		contentPane.add(addressField);
-		addressField.setColumns(10);
-		
-		cityField = new JTextField();
-		cityField.setBounds(xLeft, 113, xRight, 26);
-		contentPane.add(cityField);
-		cityField.setColumns(10);
-		
-		String[] states = new String[] {"  ","MA","AK","AL","AR","AZ","CA","CO","CT","DC","DE","FL","GA","GU","HI","IA","ID", "IL","IN",
-				"KS","KY","LA","MA","MD","ME","MH","MI","MN","MO","MS","MT","NC","ND","NE","NH","NJ","NM","NV","NY", "OH","OK",
-				"OR","PA","PR","PW","RI","SC","SD","TN","TX","UT","VA","VI","VT","WA","WI","WV","WY"};
-		stateField = new JComboBox<String>();
-		stateField.setEditable(true);
-		stateField.setBounds(xLeft, 141, xRight, 26);
-		for(String s:states) {
-			stateField.addItem(s);
-		}
-		contentPane.add(stateField);
-		
-		zipField = new JTextField();
-		zipField.setBounds(xLeft, 169, xRight, 26);
-		contentPane.add(zipField);
-		zipField.setColumns(10);
-		
-		String[] categories = new String[] {"","Cash","Check","EFT"};
-		categoryField = new JComboBox<String>();
-		categoryField.setBounds(xLeft, 197, xRight, 26);
-		for(String s: categories) {
-			categoryField.addItem(s);
-		}
-		contentPane.add(categoryField);
-		
-		String[] designations = new String[] {"","Plate","Envelope","Misc.","Designated"};
-		designationField = new JComboBox<String>();
-		designationField.setBounds(xLeft, 225, xRight, 26);
-		for(String s: designations) {
-			designationField.addItem(s);
-		}
-		contentPane.add(designationField);
-		
-		descriptionField = new JTextField();
-		descriptionField.setBounds(xLeft, 253, xRight, 26);
-		contentPane.add(descriptionField);
-		descriptionField.setColumns(10);
-		
-		amountField = new JTextField();
-		amountField.setBounds(xLeft, 285, xRight, 26);
-		contentPane.add(amountField);
-		amountField.setColumns(10);
-		
-		setFocusTraversalPolicy(new FocusTraversalOnArray(
-                new Component[] { 
-                	lastNameField, firstNameField, envelopeField, addressField, cityField, stateField, zipField , 
-                	categoryField, designationField, descriptionField, amountField }));
-		
-// buttons setup --------------------------------------------------------------------	
-		int xButton = 400;
-		int widthButton = 200;
-		
-		FormController enterButtonDataController = new FormController(this);
-		JButton enterDataButton = new JButton();
-		enterDataButton.setText("Enter Data");
-		enterDataButton.setBounds(xButton, 141, widthButton, 29);
-		enterDataButton.setActionCommand("enter-data");
-		enterDataButton.addActionListener(enterButtonDataController);
-		contentPane.add(enterDataButton);
-		
-		FormController showButtonDataController = new FormController(this);
-		JButton showDataButton = new JButton();
-		showDataButton.setText("Show All Entries");
-		showDataButton.setBounds(xButton, 169, widthButton, 29);
-		showDataButton.setActionCommand("show-data");
-		showDataButton.addActionListener(showButtonDataController);
-		contentPane.add(showDataButton);
-		
-		FormController exportToExcelController = new FormController(this);
-		JButton exportToExcelButton = new JButton("Create Report");
-		exportToExcelButton.setBounds(xButton, 197, widthButton, 29);
-		exportToExcelButton.setActionCommand("excel-report");
-		exportToExcelButton.addActionListener(exportToExcelController);
-		contentPane.add(exportToExcelButton);
-		
-		nameInDBLabel = new JLabel("");
-		nameInDBLabel.setBounds(xButton + 5 , 6, widthButton - 10, 16);
-		nameInDBLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		contentPane.add(nameInDBLabel);
-		
-		FormController addNameToDBController = new FormController(this);
-		addNameToDBButton = new JButton("Add Name to DataBase");
-		addNameToDBButton.setBounds(xButton, 29, widthButton, 29);
-		addNameToDBButton.setVisible(false);
-		addNameToDBButton.setEnabled(false);
-		addNameToDBButton.setActionCommand("add-name");
-		addNameToDBButton.addActionListener(addNameToDBController);
-		contentPane.add(addNameToDBButton);
-		
+		setupActionControllers();
+
 		contentPane.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{lastNameLabel, 
 				firstNameLabel, envelopeLabel, amountLabel, addressLabel, cityLabel, stateLabel, 
 				zipLabel, categoryLabel, designationLabel, descriptionLabel, nameInDBLabel, 
 				lastNameField, firstNameField, envelopeField, addressField, cityField, 
 				stateField, zipField, categoryField, designationField, descriptionField, 
-				amountField, enterDataButton, showDataButton, exportToExcelButton, addNameToDBButton}));
-		
+				amountField, enterDataButton, showDataButton, addNameToDBButton}));
+
 		setVisible(true);
 	}
-	
-	public FormController getCheckLastNameBoxController() {
-		return checkLastNameBoxController;
+
+
+	private void setupMainPanel(int xLeft, int width, int yTop, int heigth) {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(xLeft, yTop, width, heigth);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setBackground(new Color(62, 100, 124));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);	
 	}
 
-	public void setCheckLastNameBoxController(FormController checkLastNameBoxController) {
-		this.checkLastNameBoxController = checkLastNameBoxController;
+	private void setupLabels(int xLeft,int width, int yTop , int heigth) {
+
+		int fh = heigth;
+		int x = 30, y = fh/23;
+		int labelWidth = 110, labelHeight = fh/23;
+		int dy = 2*labelHeight;
+
+		lastNameLabel = setupLabel(lastNameLabel, "Last Name", x, y, labelWidth, labelHeight);
+		firstNameLabel = setupLabel(firstNameLabel, "First Name", x, y+1*dy, labelWidth, labelHeight);
+		envelopeLabel = setupLabel(envelopeLabel, "Envelope Number", x, y+2*dy, labelWidth, labelHeight);
+		addressLabel = setupLabel(addressLabel, "Address", x, y+3*dy, labelWidth, labelHeight);
+		cityLabel = setupLabel(cityLabel, "City", x, y+4*dy, labelWidth, labelHeight);
+		stateLabel = setupLabel(stateLabel, "State", x, y+5*dy, labelWidth, labelHeight);
+		zipLabel = setupLabel(zipLabel, "Zip", x, y+6*dy, labelWidth, labelHeight);
+		categoryLabel = setupLabel(categoryLabel, "Category", x, y+7*dy, labelWidth, labelHeight);
+		designationLabel = setupLabel(designationLabel, "Designation", x, y+8*dy, labelWidth, labelHeight);
+		descriptionLabel = setupLabel(descriptionLabel, "Description", x, y+9*dy, labelWidth, labelHeight);	
+		amountLabel = setupLabel(amountLabel, "Amount", x, y+10*dy, labelWidth, labelHeight);
 	}
+
+	private JLabel setupLabel(JLabel label , String labelText, int xcoord, int ycoord, int width, int height) {
+		label = new JLabel(labelText);
+		label.setHorizontalAlignment(SwingConstants.RIGHT);
+		label.setBounds(xcoord, ycoord, width, height);
+		label.setForeground(Color.white);
+		contentPane.add(label);
+		return label;
+	}
+
+	private void setupEntryFields(int xLeft,int Xwidth, int yTop , int fh) {
+		
+		int x = 170, y = fh/23;
+		int width = 200, height = fh/23;
+		int dy = 2*height;
+		int columns = 10;
+		
+		lastNameField = setupTextField(x, y, width, height, columns); 
+		firstNameField = setupTextField(x, y + 1*dy , width, height, columns); 
+		envelopeField = setupTextField(x, y + 2*dy , width, height, columns);
+		addressField = setupTextField(x, y + 3*dy , width, height, columns);
+		cityField = setupTextField(x, y + 4*dy , width, height, columns);
+
+		String[] states = new String[] {"  ","MA","AK","AL","AR","AZ","CA","CO","CT","DC","DE","FL","GA","GU","HI","IA","ID", "IL","IN",
+				"KS","KY","LA","MA","MD","ME","MH","MI","MN","MO","MS","MT","NC","ND","NE","NH","NJ","NM","NV","NY", "OH","OK",
+				"OR","PA","PR","PW","RI","SC","SD","TN","TX","UT","VA","VI","VT","WA","WI","WV","WY"};
+		stateField = setupComboBox(states, x, y + 5*dy , width, height, columns);
+		zipField = setupTextField(x, y + 6*dy , width, height, columns);
+
+		String[] categories = new String[] {"","Cash","Check","EFT"};
+		categoryField = setupComboBox(categories, x, y + 7*dy , width, height, columns);
+
+		String[] designations = new String[] {"","Plate","Envelope","Misc.","Designated"};
+		designationField = setupComboBox(designations, x, y + 8*dy , width, height, columns);
+		String[] descriptions = new String[] {""};
+		descriptionField = setupComboBox(descriptions, x, y + 9*dy , width, height, columns);
+		amountField = setupTextField(x, y + 10*dy , width, height, columns);
+		
+		
+		
+
+		setFocusTraversalPolicy(new FocusTraversalOnArray(
+				new Component[] { lastNameField, firstNameField, envelopeField, addressField, cityField, stateField, 
+						zipField, categoryField, designationField, descriptionField, amountField }));
+	}
+
+	private JTextField setupTextField(int x, int y, int w, int h, int columns) {	
+		JTextField jt = new JTextField();
+		jt.setBounds(x, y, w, h);
+		contentPane.add(jt);
+		jt.setColumns(10);
+		return jt;
+	}
+
+	private JComboBox<String> setupComboBox(String[] array, int x, int y, int w, int h, int columns) {	
+		JComboBox<String> jc = new JComboBox<String>();
+		jc.setEditable(true);
+		jc.setBounds(x, y, w, h);
+		for(String s:array) {
+			jc.addItem(s);
+		}
+		contentPane.add(jc);
+		return jc;
+	}
+
+	private void setupButtons() {
+		int xButton = 400;
+		int widthButton = 200;
+
+		enterDataButton = setupButton("Enter Data", xButton, 169, widthButton, 29);
+		showDataButton = setupButton("Show All Entries", xButton, 199, widthButton, 29);
+	}
+
+	private JButton setupButton(String title, int xButton, int yButton, int widthButton, int heightButton) {
+		
+		JButton b = new JButton();
+		b.setText(title);
+		b.setBounds(xButton, yButton, widthButton, heightButton);
+		contentPane.add(b);
+		return b;
+	}
+
+	private void setupActionControllers() {
+
+		lastNameField.addActionListener(actionController);		
+		lastNameField.setActionCommand("lastname-event");
+
+		envelopeField.addActionListener(actionController);
+		envelopeField.setActionCommand("envelope-event");
+		
+		enterDataButton.addActionListener(actionController);
+		enterDataButton.setActionCommand("enter-data");
+		
+		showDataButton.addActionListener(actionController);
+		showDataButton.setActionCommand("show-data");
+	}
+
+	private void addChurchImage() {
+		ImageIcon churchIcon = new ImageIcon("/Users/bbakker/eclipse-workspace/ChurchGiving2/FBC-website-header_logo.png");
+		Image image = churchIcon.getImage();
+		JLabel churchLogo = new JLabel(new ImageIcon(getScaledImage(image, 220,70)));		
+		churchLogo.setHorizontalAlignment(SwingConstants.RIGHT);
+		churchLogo.setBounds(390, 6, 220, 70);
+		contentPane.add(churchLogo);
+	}
+
+	private Image getScaledImage(Image srcImg, int w, int h){
+		BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2 = resizedImg.createGraphics();
+
+		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g2.drawImage(srcImg, 0, 0, w, h, null);
+		g2.dispose();
+
+		return resizedImg;
+	}
+
 
 	public ArrayList<Donor> getChurchDB(){
 		return churchDB;
@@ -337,12 +321,12 @@ public class DataEntryForm extends JFrame {
 	public void setDesignationField(String s) {
 		this.designationField.setSelectedItem(s);
 	}
-	
-	public JTextField getDescriptionField() {
+
+	public JComboBox<String> getDescriptionField() {
 		return descriptionField;
 	}
 
-	public void setDescriptionField(JTextField descriptionField) {
+	public void setDescriptionField(JComboBox<String> descriptionField) {
 		this.descriptionField = descriptionField;
 	}
 
@@ -361,17 +345,11 @@ public class DataEntryForm extends JFrame {
 	public void setZipField(String z) {
 		this.zipField.setText(z);
 	}
-	
-	
-	public void alertMessage(String s) {
-		//default title and icon
-		JOptionPane.showMessageDialog(contentPane, s);
-	}
-	
+
 	public void loadChurchDB() {
-		
+
 		churchDB = new ArrayList<Donor>();
-		
+
 		Donor d;
 		String fn;
 		String ln;
@@ -380,72 +358,97 @@ public class DataEntryForm extends JFrame {
 		String ct;
 		String st;
 		String zp;
-		
-	    String churchDBfile = "churchDB1.csv";
-	    String line = null;
-	    try {
-	    		FileReader fileReader = new FileReader(churchDBfile);
 
-	        // Always wrap FileReader in BufferedReader.
-	        BufferedReader bufferedReader = new BufferedReader(fileReader);
-	        
-	        while((line = bufferedReader.readLine()) != null) {
-	        		d = new Donor();
-	        		int commaPlace = line.indexOf(',');	
-	        		try {
-	        			env = line.substring(0, commaPlace);
-	        		}
-	        		catch (Exception e){
-	        			env="0";
-	        		}
-	        		
-	        		int nextCommaPlace = line.indexOf(',', commaPlace+1);
-	        		ln = line.substring(commaPlace+1, nextCommaPlace);
-	        		commaPlace=nextCommaPlace;
-	        		nextCommaPlace = line.indexOf(',', commaPlace+1);
-	        		fn = line.substring(commaPlace+1, nextCommaPlace);
-	        		commaPlace=nextCommaPlace;
-	        		nextCommaPlace = line.indexOf(',', commaPlace+1);
-	        		ad = line.substring(commaPlace+1, nextCommaPlace);
-	        		commaPlace=nextCommaPlace;
-	        		nextCommaPlace = line.indexOf(',', commaPlace+1);
-	        		ct = line.substring(commaPlace+1, nextCommaPlace);
-	        		commaPlace=nextCommaPlace;
-	        		nextCommaPlace = line.indexOf(',', commaPlace+1);
-	        		st = line.substring(commaPlace+1, nextCommaPlace);
-	        		zp = line.substring(nextCommaPlace+1);
-	        		
-	        		if(ln.compareTo("Last Name")==0) {
-	        			System.out.println("configuring the first donor - removing csv file headers....");
-	        			d.setEnvelopeNumber("");
-		        		d.setFirstName("");
-		        		d.setLastName("");
-		        		d.setAddress("");
-		        		d.setCity("");
-		        		d.setState("");
-		        		d.setZip("");
-	        		}
-		        	else {	
-		        		d.setEnvelopeNumber(env);
-		        		d.setFirstName(fn);
-		        		d.setLastName(ln);
-		        		d.setAddress(ad);
-		        		d.setCity(ct);
-		        		d.setState(st);
-		        		d.setZip(zp);
+		// this site was helpful - https://gist.github.com/madan712/3912272
 
-		        	}
-	        		churchDB.add(d);   		
-	        }   
+		try {
 
-	        // Always close files.
-	        bufferedReader.close();         
-	    }
-	    catch(FileNotFoundException ex) {
-	    		System.out.println("Unable to open file '" + churchDBfile + "'");                
-	    }
-	    catch(IOException ex) {
-	        System.out.println("Error reading file '" + churchDBfile + "'");
-	    }	   
+			InputStream ExcelFileToRead = new FileInputStream("churchDB.xls");
+			HSSFWorkbook wb = new HSSFWorkbook(ExcelFileToRead);
+
+			HSSFSheet sheet=wb.getSheetAt(0);
+			HSSFRow row; 
+			HSSFCell cell;
+
+			Iterator rows = sheet.rowIterator();
+			row=(HSSFRow) rows.next();
+
+			while (rows.hasNext())
+			{	
+				row=(HSSFRow) rows.next();
+				Iterator cells = row.cellIterator();
+				d = new Donor();
+
+				cell = row.getCell(0);
+				if (cell!=null) {
+					System.out.print(cell);
+					env = Integer.toString((int)cell.getNumericCellValue());
+				}else
+					env = "";
+
+				cell = row.getCell(1);
+				if (cell!=null) {
+					System.out.print(cell);
+					ln=cell.getStringCellValue();
+				}
+				else
+					ln="";
+
+				cell = row.getCell(2);
+				if (cell!=null) {
+					System.out.print(cell);
+					fn = cell.getStringCellValue();
+				}else
+					fn="";
+
+				cell = row.getCell(3);
+				if (cell!=null) {
+					System.out.print(cell);
+					ad = cell.getStringCellValue();
+				}else
+					ad="";
+
+				cell = row.getCell(4);
+				if (cell!=null) {
+					System.out.print(cell);
+					ct = cell.getStringCellValue();
+				}
+				else
+					ct="";
+
+				cell = row.getCell(5);
+				if (cell!=null) {
+					System.out.print(cell);
+					st = cell.getStringCellValue();
+				}
+				else
+					st="";
+
+				cell = row.getCell(6);
+				if (cell!=null) {
+					System.out.print(cell);
+					zp = cell.getStringCellValue();
+				}
+				else
+					zp="";
+
+				System.out.println();
+
+				d.setEnvelopeNumber(env);
+				d.setFirstName(fn);
+				d.setLastName(ln);
+				d.setAddress(ad);
+				d.setCity(ct);
+				d.setState(st);
+				d.setZip(zp);
+
+				churchDB.add(d);  
+			}
+
+			ExcelFileToRead.close();
+		}
+		catch(IOException ex) {
+			System.out.println("Error reading file '");
+		} 
 	}
 }

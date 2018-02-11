@@ -5,10 +5,10 @@ public class Donation implements Comparable {
 	String category;
 	String designation;
 	String description;
-	Integer amount;
+	Double amount;
 	
 	public Donation(Donor donor, String category, String designation, 
-					String description, Integer amount) {
+					String description, Double amount) {
 		super();
 		this.donor = donor;
 		this.category = category;
@@ -23,7 +23,7 @@ public class Donation implements Comparable {
 		category="";
 		designation="";
 		description="";
-		amount=0;
+		amount=0.0;
 	}
 	
 	public Donation() {
@@ -32,7 +32,7 @@ public class Donation implements Comparable {
 		category="";
 		designation="";
 		description="";
-		amount=0;	
+		amount=0.0;	
 	}
 	
 	@Override
@@ -70,10 +70,10 @@ public class Donation implements Comparable {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public Integer getAmount() {
+	public Double getAmount() {
 		return amount;
 	}
-	public void setAmount(Integer amount) {
+	public void setAmount(Double amount) {
 		this.amount = amount;
 	}
 
