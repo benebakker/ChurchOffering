@@ -1,5 +1,5 @@
 
-public class Donation implements Comparable {
+public class Donation implements Comparable<Donation> {
 	
 	Donor donor;
 	String category;
@@ -34,15 +34,15 @@ public class Donation implements Comparable {
 		description="";
 		amount=0.0;	
 	}
-	
+
 	@Override
-    public int compareTo(Object compareD) {
+    public int compareTo(Donation compareD) {
 		String thisd = this.getDescription();
 		String otherd = ((Donation)compareD).getDescription();
         int compareDescription=thisd.compareToIgnoreCase(otherd);
         return compareDescription;
     }
-	
+
 	public Donor getDonor() {
 		return donor;
 	}
@@ -62,7 +62,7 @@ public class Donation implements Comparable {
 	}
 
 	public void setDesignation(String designation) {
-		designation = designation;
+		this.designation = designation;
 	}
 	public String getDescription() {
 		return description;

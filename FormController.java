@@ -3,7 +3,6 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
-import java.io.*;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
@@ -11,18 +10,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-//import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.hssf.util.*;
-//import org.apache.poi.hssf.util.HSSFColor;
-//import org.apache.poi.ss.usermodel.Cell;
-//import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.*;
-//import org.apache.poi.ss.usermodel.CreationHelper;
-//import org.apache.poi.ss.usermodel.Row;
-//import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.util.*;
 
 public class FormController implements ActionListener {
 	
@@ -52,36 +42,21 @@ public class FormController implements ActionListener {
 			lastNameEvent();
 
 	}
-	
+/*	
 	private void addNameToDatabase() {
 		Donation d = getFormData();
 		form.getChurchDB().add(d.getDonor());
 		updateChurchDB();	
 	}
-	
+*/	
 	private void lastNameEvent() {
 		System.out.println("last name event has occurred...");
+		
+		//form.clearForm();
 		
 		// Force first letter to be capitalized
 		String temp = capitalizeString(form.getLastNameField().getText());
 		form.getLastNameField().setText(temp);
-
-		/* - the Array list implementation which leads to a drop down selection
-		ArrayList<String> namesList = new ArrayList<String>();
-		
-		for(Donor d: form.getChurchDB()) {
-			String searchName = form.getLastNameField().getText();
-			if(d.getLastName().length()>=searchName.length()) {
-				if(d.getLastName().substring(0,searchName.length()).compareToIgnoreCase(searchName)==0) {
-					namesList.add( d.getLastName()+", " + d.getFirstName() );
-				}
-			}
-		}
-		
-        String n = (String)JOptionPane.showInputDialog(null, "Select a person ",
-                "names", JOptionPane.QUESTION_MESSAGE, null, namesList.toArray(), namesList.toArray()[0]);
-        System.out.println(n);
-		*/
 		
 		// the array implementation which leads to a scroll box
 		String[] namesList = new String [form.getChurchDB().size()];
@@ -102,7 +77,7 @@ public class FormController implements ActionListener {
 		// name not in database
 		if (i==0) {
 			resetNonLastNameFields();
-			JOptionPane.showMessageDialog(null,"no matches or partial matches for name found in church database");
+			JOptionPane.showMessageDialog(null,"no matches or partial matches for " + form.getLastNameField().getText() + " found in church database");
 		}  // only one name match
 		else if(i==1) {
 			System.out.println("in the i==1 section...");
@@ -168,6 +143,7 @@ public class FormController implements ActionListener {
 	}
 			
 	private void envelopeEvent() {
+		System.out.println("envelope event occured...");
 		String en = (String)form.getEnvelopeField().getText();
 		System.out.println(en);
 		boolean envelopeExists=false;
@@ -185,7 +161,7 @@ public class FormController implements ActionListener {
 			fillInDataUsingEnvelopeNumber(en);
 		}
 		else {
-			JOptionPane.showMessageDialog(form.getContentPane(), "Envelope number does not exist in database", 
+			JOptionPane.showMessageDialog(form.getContentPane(), "Envelope number " + form.getEnvelopeField().getText() + " does not exist in database", 
 					"Data Entry Problem Message", JOptionPane.ERROR_MESSAGE);
 		}	
 	}
@@ -193,6 +169,12 @@ public class FormController implements ActionListener {
 	private void enterData() {
 		
 		System.out.println("in the enter data method...");
+
+		if(form.getAmountField().getText().compareToIgnoreCase("")==0) {
+			JOptionPane.showMessageDialog(null, "No value entered for amount.");
+			return;
+		}
+		
 		Donation d = getFormData();
 		
 		/*
@@ -225,7 +207,7 @@ public class FormController implements ActionListener {
 		int  a=checkForAddressMatchInDB();
 		if(a==1) {
 			int choice = JOptionPane.showOptionDialog(null, 
-				      "Name found in the database, but address does not match the database information.  \nWould you lik to update the databaase?", 
+				      form.getLastNameField().getText() + ", " + form.getFirstNameField().getText() + " is in the database, but address entered does not match the database information.  \nWould you like to update the databaase?", 
 				      "Update Address church database?", 
 				      JOptionPane.YES_NO_OPTION, 
 				      JOptionPane.QUESTION_MESSAGE, 
@@ -246,7 +228,7 @@ public class FormController implements ActionListener {
 		// if(a==0) then the person does not exist in the database and should have been handled by the checkforperson in DB method
 		
 		if(!isLegalEnvelopeEntry()) {
-			JOptionPane.showMessageDialog(null, "Entries designated as envelope must have anenvelope #");
+			JOptionPane.showMessageDialog(null, "Entries designated as envelope must have an envelope #");
 			return;
 		}
 		
@@ -320,7 +302,8 @@ public class FormController implements ActionListener {
 		form.getStateField().setSelectedIndex(0);
 	}
 	
-	private void updateChurchDB() {
+/*	
+	private void updateChurchDB2() {
 
 	    String churchDBfile = "churchDB1.csv";
 
@@ -346,6 +329,81 @@ public class FormController implements ActionListener {
 		    fileWriter.close(); 
 	    }catch(Exception e) {
 	    }
+	}
+*/	
+	
+	
+	private void updateChurchDB() {
+
+		String excelFileName = "churchDB.xls";//name of excel file
+
+		String sheetName = "Sheet1";//name of sheet
+
+		HSSFWorkbook wb = new HSSFWorkbook();
+		HSSFSheet sheet = wb.createSheet(sheetName) ;
+
+		HSSFRow row = sheet.createRow(0);
+		
+		HSSFCell cell = row.createCell(0);
+		cell.setCellValue("Env #");
+		
+		cell = row.createCell(1);
+		cell.setCellValue("Last Name");
+		
+		cell = row.createCell(2);
+		cell.setCellValue("First Name");
+		
+		cell = row.createCell(3);
+		cell.setCellValue("Address");
+		
+		cell = row.createCell(4);
+		cell.setCellValue("City");
+		
+		cell = row.createCell(5);
+		cell.setCellValue("State");
+		
+		cell = row.createCell(6);
+		cell.setCellValue("Zip");
+
+		//iterating r number of rows
+		for (int r=0;r < form.getChurchDB().size(); r++ )
+		{
+			row = sheet.createRow(r+1);
+			
+			cell = row.createCell(0);
+			cell.setCellValue(form.getChurchDB().get(r).getEnvelopeNumber());
+			
+			cell = row.createCell(1);
+			cell.setCellValue(form.getChurchDB().get(r).getLastName());
+			
+			cell = row.createCell(2);
+			cell.setCellValue(form.getChurchDB().get(r).getFirstName());
+			
+			cell = row.createCell(3);
+			cell.setCellValue(form.getChurchDB().get(r).getAddress());
+			
+			cell = row.createCell(4);
+			cell.setCellValue(form.getChurchDB().get(r).getCity());
+			
+			cell = row.createCell(5);
+			cell.setCellValue(form.getChurchDB().get(r).getState());
+			
+			cell = row.createCell(6);
+			cell.setCellValue(form.getChurchDB().get(r).getZip());
+	
+		}
+		try {
+			FileOutputStream fileOut = new FileOutputStream(excelFileName);
+		
+			//write this workbook to an Outputstream.
+			wb.write(fileOut);
+			wb.close();
+			fileOut.flush();
+			fileOut.close();
+		}
+		catch(Exception e) {
+			System.out.println(e);
+		}
 	}
 
 
@@ -395,7 +453,7 @@ public class FormController implements ActionListener {
 			return 0.0;
 		}
 	}
-	
+/*	
 	private void fillInDataUsingLastName(String s) {
 		for(Donor d: form.getChurchDB()) {
 			if (d.getLastName().compareToIgnoreCase(s)==0) {
@@ -410,7 +468,7 @@ public class FormController implements ActionListener {
 		}
 			
 	}
-
+*/
 	private void fillInDataUsingEnvelopeNumber(String s) {
 		for(Donor d: form.getChurchDB()) {
 			if (d.getEnvelopeNumber().compareToIgnoreCase(s)==0) {
@@ -426,6 +484,7 @@ public class FormController implements ActionListener {
 			
 	}
 	
+/*	
 	private int countNameMatches(String s) {
 		int matches=0;
 		for(Donor d: form.getChurchDB()) {
@@ -435,28 +494,7 @@ public class FormController implements ActionListener {
 		}
 		return matches;
 	}
-	
-	/*
-	private int updateLastNameComboBox(String s) {
-		System.out.println("in updateLastNameComboBox()....");
-		int count = 0;
-		form.getLastNameField().removeAllItems();
-		form.getLastNameField().addItem(s);
-		for(Donor d: form.getChurchDB()) {
-			if(d.getLastName().length()>=s.length()) {
-				System.out.print("d.getLastName().substring(0, s.length() = " + d.getLastName().substring(0, s.length()));
-				System.out.println(" s = " + s);
-				if (d.getLastName().substring(0, s.length()).compareToIgnoreCase(s)==0){
-					System.out.println("adding : " + d.getLastName());
-					form.getLastNameField().insertItemAt(d.getLastName(),count);
-					count++;
-				}
-			}
-		}
-	return count;
-}
-*/
-	
+*/	
 	private void showAllEntries(){
 		
 		System.out.println("in the show all entries block...number of entries in offering is " + offering.size());
@@ -489,15 +527,10 @@ public class FormController implements ActionListener {
 
 		JTable table = new JTable(rowData, columnNames);
 
-		//table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 	
 		System.out.println("preferred width is " + table.getColumnModel().getColumn(1).getPreferredWidth());
 		System.out.println("max width is " + table.getColumnModel().getColumn(1).getMaxWidth());
 		System.out.println("min width is " + table.getColumnModel().getColumn(1).getMinWidth());
-		
-		//table.getColumnModel().getColumn(1).setMinWidth(10);
-		//table.getColumnModel().getColumn(1).setMaxWidth(10);
-		//table.getColumnModel().getColumn(1).setPreferredWidth(10);
 		
 		JScrollPane scrollPane = new JScrollPane(table);
 		frame.add(scrollPane, BorderLayout.CENTER);
@@ -505,7 +538,7 @@ public class FormController implements ActionListener {
 		
 		frame.setVisible(true);
 	}
-	
+/*	
 	private boolean isLegalEnvelope() {
 		
 		for(Donor d: form.getChurchDB()) {
@@ -518,7 +551,7 @@ public class FormController implements ActionListener {
 		}
 		return false;
 	}
-	
+*/	
 	private int checkForAddressMatchInDB() {
 		int match = 0;
 		for(Donor d: form.getChurchDB()) {
@@ -543,7 +576,7 @@ public class FormController implements ActionListener {
 		}
 		return match;
 	}
-	
+/*	
 	private boolean isLegalEntry(Donation d) {
 		if(d.getDesignation().compareToIgnoreCase("envelope")==0)
 			if(d.getDonor().getEnvelopeNumber().compareTo("")==0) {
@@ -560,7 +593,7 @@ public class FormController implements ActionListener {
 		}
 		return false;
 	}
-	
+*/	
 	private void exportToExcel() {
 		HSSFWorkbook wb = new HSSFWorkbook();
 	
@@ -853,9 +886,9 @@ public class FormController implements ActionListener {
 	    font.setItalic(false);
 	    
 	    // set up the color for the top row
-	    HSSFPalette palette = wb.getCustomPalette();
-	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
-	    short palIndex = myColor.getIndex();
+//	    HSSFPalette palette = wb.getCustomPalette();
+//	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
+//	    short palIndex = myColor.getIndex();
 
 	    
 	    // setup the cell style for currency entries
@@ -1032,9 +1065,9 @@ public class FormController implements ActionListener {
     	    font.setItalic(false);
 
     	    // setup background colors for sheet
-    	    HSSFPalette palette = wb.getCustomPalette();
-    	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
-    	    short palIndex = myColor.getIndex();
+//    	    HSSFPalette palette = wb.getCustomPalette();
+//    	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
+//    	    short palIndex = myColor.getIndex();
     	    
     	    // setup the cell style for currency entries
     	    CellStyle styleData = wb.createCellStyle();
@@ -1217,9 +1250,9 @@ public class FormController implements ActionListener {
 	    font.setItalic(false);
 	    
 	    // setup background colors for sheet
-	    HSSFPalette palette = wb.getCustomPalette();
-	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
-	    short palIndex = myColor.getIndex();
+//	    HSSFPalette palette = wb.getCustomPalette();
+//	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
+//	    short palIndex = myColor.getIndex();
 	    
 	    // setup the cell style for currency entries
 	    CellStyle styleData = wb.createCellStyle();
@@ -1263,7 +1296,7 @@ public class FormController implements ActionListener {
 	    cell.setCellStyle(topRowStyle(wb));
 	    cell.setCellValue(createHelper.createRichTextString("Address"));
 	    
-  	cell = row.createCell(8);
+	    cell = row.createCell(8);
 	    cell.setCellStyle(topRowStyle(wb));
 	    cell.setCellValue(createHelper.createRichTextString("City"));
 
@@ -1275,9 +1308,9 @@ public class FormController implements ActionListener {
 	    cell.setCellStyle(topRowStyle(wb));
 	    cell.setCellValue(createHelper.createRichTextString("Zip"));
     	
-	    int check=0; 
-	    int cash=0;
-	    int EFT=0;
+//	    int check=0; 
+//	    int cash=0;
+//	    int EFT=0;
     	
 	    /*
 	    int r=0;
@@ -1304,15 +1337,15 @@ public class FormController implements ActionListener {
 	    		    row.createCell(2).setCellValue(createHelper.createRichTextString(d.getDonor().getLastName()));
 	    		    if(d.getCategory().compareToIgnoreCase("check")==0) {
 	    		    		row.createCell(3).setCellValue(d.getAmount());
-	    		    		check+=d.getAmount();
+	    		    		//check+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("cash")==0) {
     		    			row.createCell(4).setCellValue(d.getAmount());
-    		    			cash+=d.getAmount();
+    		    			//cash+=d.getAmount();
 	    		    }
 	    		    if(d.getCategory().compareToIgnoreCase("eft")==0) {
     		    			row.createCell(5).setCellValue(d.getAmount());
-    		    			EFT+=d.getAmount();
+    		    			//EFT+=d.getAmount();
 	    		    }
 	    		    row.createCell(6).setCellValue(createHelper.createRichTextString(d.getDescription()));
 	    		    row.createCell(7).setCellValue(createHelper.createRichTextString(d.getDonor().getAddress()));
@@ -1434,9 +1467,9 @@ public class FormController implements ActionListener {
 	    font.setItalic(false);
 	    
 	    // setup background colors for sheet
-	    HSSFPalette palette = wb.getCustomPalette();
-	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
-	    short palIndex = myColor.getIndex();
+//	    HSSFPalette palette = wb.getCustomPalette();
+//	    HSSFColor myColor = palette.findSimilarColor(255, 202, 146);
+//	    short palIndex = myColor.getIndex();
     	
 	    int check=0; 
 	    int cash=0;

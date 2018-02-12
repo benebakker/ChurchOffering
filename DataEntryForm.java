@@ -22,27 +22,13 @@ import java.awt.image.BufferedImage;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
-//import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-//import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.usermodel.*;
-//import org.apache.poi.hssf.util.HSSFColor;
-//import org.apache.poi.ss.usermodel.Cell;
-//import org.apache.poi.ss.usermodel.CellStyle;
-//import org.apache.poi.ss.usermodel.CreationHelper;
-//import org.apache.poi.ss.usermodel.Row;
-//import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.util.*;
-
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;   
-import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.*;
 
+@SuppressWarnings("serial")
 public class DataEntryForm extends JFrame {
 
 	private JPanel contentPane;
@@ -76,10 +62,11 @@ public class DataEntryForm extends JFrame {
 	private JButton enterDataButton;
 	private JButton showDataButton;
 
-	private FormController checkLastNameBoxController; 
 	public FormController actionController;
 
 	private ArrayList<Donor> churchDB;
+	LocalDate localDate;
+	DateTimeFormatter dtf;
 
 	public DataEntryForm() {
 
@@ -123,6 +110,11 @@ public class DataEntryForm extends JFrame {
 		int x = 30, y = fh/23;
 		int labelWidth = 110, labelHeight = fh/23;
 		int dy = 2*labelHeight;
+		
+		dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+		localDate = LocalDate.now();
+		JLabel dateLabel = new JLabel();
+		dateLabel = setupLabel(dateLabel, dtf.format(localDate) , 440,100, 100, 30);
 
 		lastNameLabel = setupLabel(lastNameLabel, "Last Name", x, y, labelWidth, labelHeight);
 		firstNameLabel = setupLabel(firstNameLabel, "First Name", x, y+1*dy, labelWidth, labelHeight);
@@ -181,6 +173,20 @@ public class DataEntryForm extends JFrame {
 				new Component[] { lastNameField, firstNameField, envelopeField, addressField, cityField, stateField, 
 						zipField, categoryField, designationField, descriptionField, amountField }));
 	}
+	
+	public void clearForm() {
+		getLastNameField().setText("");
+		getFirstNameField().setText("");
+		getEnvelopeField().setText("");
+		getAddressField().setText("");
+		getCityField().setText("");
+		getStateField().setSelectedIndex(0);
+		getZipField().setText("");
+		getCategoryField().setSelectedIndex(0);
+		getDescriptionField().setSelectedIndex(0);
+		getDesignationField().setSelectedIndex(0);
+		getAmountField().setText("");
+	}
 
 	private JTextField setupTextField(int x, int y, int w, int h, int columns) {	
 		JTextField jt = new JTextField();
@@ -234,7 +240,7 @@ public class DataEntryForm extends JFrame {
 	}
 
 	private void addChurchImage() {
-		ImageIcon churchIcon = new ImageIcon("/Users/bbakker/eclipse-workspace/ChurchGiving2/FBC-website-header_logo.png");
+		ImageIcon churchIcon = new ImageIcon("FBC-website-header_logo.png");
 		Image image = churchIcon.getImage();
 		JLabel churchLogo = new JLabel(new ImageIcon(getScaledImage(image, 220,70)));		
 		churchLogo.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -298,7 +304,7 @@ public class DataEntryForm extends JFrame {
 		this.cityField.setText(c);
 	}
 
-	public JComboBox getStateField() {
+	public JComboBox<String> getStateField() {
 		return stateField;
 	}
 
@@ -306,7 +312,7 @@ public class DataEntryForm extends JFrame {
 		this.stateField.setSelectedItem(s);
 	}
 
-	public JComboBox getCategoryField() {
+	public JComboBox<String> getCategoryField() {
 		return categoryField;
 	}
 
@@ -314,7 +320,7 @@ public class DataEntryForm extends JFrame {
 		this.categoryField.setSelectedItem(s);
 	}
 
-	public JComboBox getDesignationField() {
+	public JComboBox<String> getDesignationField() {
 		return designationField;
 	}
 
@@ -370,25 +376,26 @@ public class DataEntryForm extends JFrame {
 			HSSFRow row; 
 			HSSFCell cell;
 
-			Iterator rows = sheet.rowIterator();
+			Iterator<Row> rows = sheet.rowIterator();
 			row=(HSSFRow) rows.next();
-
+			
 			while (rows.hasNext())
 			{	
+				
 				row=(HSSFRow) rows.next();
-				Iterator cells = row.cellIterator();
+				//Iterator<Cell> cells = row.cellIterator();
 				d = new Donor();
-
-				cell = row.getCell(0);
+	
+				cell = row.getCell(0);		
 				if (cell!=null) {
 					System.out.print(cell);
-					env = Integer.toString((int)cell.getNumericCellValue());
+					env = cell.getStringCellValue().toString();
 				}else
 					env = "";
 
 				cell = row.getCell(1);
 				if (cell!=null) {
-					System.out.print(cell);
+					//System.out.print(cell);
 					ln=cell.getStringCellValue();
 				}
 				else
@@ -396,21 +403,21 @@ public class DataEntryForm extends JFrame {
 
 				cell = row.getCell(2);
 				if (cell!=null) {
-					System.out.print(cell);
+					//System.out.print(cell);
 					fn = cell.getStringCellValue();
 				}else
 					fn="";
 
 				cell = row.getCell(3);
 				if (cell!=null) {
-					System.out.print(cell);
+					//System.out.print(cell);
 					ad = cell.getStringCellValue();
 				}else
 					ad="";
 
 				cell = row.getCell(4);
 				if (cell!=null) {
-					System.out.print(cell);
+					//System.out.print(cell);
 					ct = cell.getStringCellValue();
 				}
 				else
@@ -418,7 +425,7 @@ public class DataEntryForm extends JFrame {
 
 				cell = row.getCell(5);
 				if (cell!=null) {
-					System.out.print(cell);
+					//System.out.print(cell);
 					st = cell.getStringCellValue();
 				}
 				else
@@ -426,13 +433,13 @@ public class DataEntryForm extends JFrame {
 
 				cell = row.getCell(6);
 				if (cell!=null) {
-					System.out.print(cell);
+					//System.out.print(cell);
 					zp = cell.getStringCellValue();
 				}
 				else
 					zp="";
 
-				System.out.println();
+				//System.out.println();
 
 				d.setEnvelopeNumber(env);
 				d.setFirstName(fn);
@@ -442,13 +449,16 @@ public class DataEntryForm extends JFrame {
 				d.setState(st);
 				d.setZip(zp);
 
-				churchDB.add(d);  
+				churchDB.add(d);
+				
 			}
 
 			ExcelFileToRead.close();
+			wb.close();
 		}
 		catch(IOException ex) {
 			System.out.println("Error reading file '");
 		} 
+		
 	}
 }
